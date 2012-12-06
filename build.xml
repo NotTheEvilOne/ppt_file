@@ -20,8 +20,8 @@ http://www.direct-netware.de/redirect.php?licenses;mpl2
 		<exec executable="python" dir="${src.basedir}">
 			<arg file="${pyBuilder.filePathName}" />
 			<arg value="--filetype=${pyBuilder.fileTypes}" />
-			<arg value="--include=${src.basedir}/python/" />
-			<arg value="--strip_prefix=${src.basedir}/python/" />
+			<arg value="--include=${src.basedir}/src/" />
+			<arg value="--strip_prefix=${src.basedir}/src/" />
 		</exec>
 	</target>
 </project>
