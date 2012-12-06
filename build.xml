@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-Extended Core: File
+file.py
 Working with a file abstraction layer
 
 (C) direct Netware Group - All rights reserved
-http://www.direct-netware.de/redirect.php?ext_core_file
+http://www.direct-netware.de/redirect.php?py;file
 
 This Source Code Form is subject to the terms of the Mozilla Public License,
 v. 2.0. If a copy of the MPL was not distributed with this file, You can
@@ -12,25 +12,16 @@ obtain one at http://mozilla.org/MPL/2.0/.
 
 http://www.direct-netware.de/redirect.php?licenses;mpl2
 // -->
-<project name="extCore_file">
-	<dirname property="extCore.basedir" file="${ant.file}" />
-	<property file="${extCore.basedir}/_extras/build.properties" />
+<project name="file.py" default="compile.pyBuilder">
+	<dirname property="src.basedir" file="${ant.file}" />
+	<property file="${src.basedir}/_extras/build.properties" />
 
-	<target name="compile.phpBuilder" description="Compile module.php ${ant.project.name}">
-		<exec executable="python" dir="${extCore.basedir}">
-			<arg file="${phpBuilder.filePathName}" />
-			<arg value="--filetype=${phpBuilder.fileTypes}" />
-			<arg value="--include=${extCore.basedir}/php/" />
-			<arg value="--strip_prefix=${extCore.basedir}/php/" />
-		</exec>
-	</target>
-
-	<target name="compile.pyBuilder" description="Compile module.py ${ant.project.name}">
-		<exec executable="python" dir="${extCore.basedir}">
+	<target name="compile.pyBuilder" description="Compile src.py ${ant.project.name}">
+		<exec executable="python" dir="${src.basedir}">
 			<arg file="${pyBuilder.filePathName}" />
 			<arg value="--filetype=${pyBuilder.fileTypes}" />
-			<arg value="--include=${extCore.basedir}/python/" />
-			<arg value="--strip_prefix=${extCore.basedir}/python/" />
+			<arg value="--include=${src.basedir}/python/" />
+			<arg value="--strip_prefix=${src.basedir}/python/" />
 		</exec>
 	</target>
 </project>

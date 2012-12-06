@@ -1,9 +1,9 @@
 ----------------------------------------------------------------------------
-Extended Core: File
+file.py
 Working with a file abstraction layer
 ----------------------------------------------------------------------------
 The following agreement is valid for all files and subdirectories of
-ext/core/file (git)
+py/file (git)
 ----------------------------------------------------------------------------
 
 Fiduciary Licence Agreement
