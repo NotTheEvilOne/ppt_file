@@ -294,7 +294,7 @@ Changes file locking if needed.
 
 		if (self.resource == None):
 		#
-			if (self.event_handler != None): self.event_handler.warn("#echo(__FILEPATH__)# -file.lock()- reporting: File resource invalid")
+			if (self.event_handler != None): self.event_handler.warning("#echo(__FILEPATH__)# -file.lock()- reporting: File resource invalid")
 		#
 		else:
 		#
@@ -574,11 +574,11 @@ Opens a file session.
 				try: self.resource = open(file_pathname_os, file_mode)
 				except: pass
 			#
-			elif (self.event_handler != None): self.event_handler.warn("#echo(__FILEPATH__)# -file.open()- reporting: Failed opening {0} - file does not exist".format(file_pathname))
+			elif (self.event_handler != None): self.event_handler.warning("#echo(__FILEPATH__)# -file.open()- reporting: Failed opening {0} - file does not exist".format(file_pathname))
 
 			if (self.resource == None):
 			#
-				if (not exists):
+				if ((not exists) and (not self.readonly)):
 				#
 					try: os.unlink(file_pathname_os)
 					except: pass
