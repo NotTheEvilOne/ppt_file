@@ -96,9 +96,7 @@ umask to set before creating a new file
 	"""
 
 	"""
-----------------------------------------------------------------------------
 Construct the class
-----------------------------------------------------------------------------
 	"""
 
 	def __init__(self, default_umask = None, default_chmod = None, timeout_retries = 5, event_handler = None):
@@ -142,10 +140,7 @@ Constructor __init__ (direct_file)
 		self.resource_file_pathname = ""
 		self.resource_file_size = -1
 		self.resource_lock = "r"
-
-		if (timeout_retries == None): self.timeout_retries = 5
-		else: self.timeout_retries = timeout_retries
-
+		self.timeout_retries = (5 if (timeout_retries == None) else timeout_retries)
 		self.umask = default_umask
 	#
 
@@ -157,13 +152,13 @@ Destructor __del__ (direct_file)
 :since: v0.1.00
 		"""
 
-		self.del_direct_file()
+		self.del_file()
 	#
 
-	def del_direct_file(self):
+	def del_file(self):
 	#
 		"""
-Destructor del_direct_file
+Destructor direct_file
 
 :since: v0.1.00
 		"""
@@ -314,8 +309,7 @@ Changes file locking if needed.
 						var_return = True
 						timeout_retries = -1
 
-						if (lock_mode == "w"): self.resource_lock = "w"
-						else: self.resource_lock = "r"
+						self.resource_lock = ("w" if (lock_mode == "w") else "r")
 					#
 					else:
 					#
@@ -399,8 +393,7 @@ Runs flock or an alternative locking mechanism.
 			#
 			else:
 			#
-				if (lock_mode == "w"): operation = fcntl.LOCK_EX
-				else: operation = fcntl.LOCK_SH
+				operation = (fcntl.LOCK_EX if (lock_mode == "w") else fcntl.LOCK_SH)
 
 				try:
 				#
@@ -437,21 +430,14 @@ Reads from the current file session.
 			bytes_unread = bytes
 			timeout_time = time.time()
 
-			try:
-			#
-				if (self.binary): var_return = _unicode_object['type']()
-				else: var_return = ""
-			#
+			try: var_return = (_unicode_object['type']() if (self.binary) else "")
 			except: var_return = ""
 
-			if (timeout < 0): timeout_time += self.timeout_retries
-			else: timeout_time += timeout
+			timeout_time += (self.timeout_retries if (timeout < 0) else timeout)
 
 			while ((bytes_unread > 0 or bytes == 0) and (not self.eof_check()) and time.time() < timeout_time):
 			#
-				if (bytes_unread > 4096 or bytes == 0): part_size = 4096
-				else: part_size = bytes_unread
-
+				part_size = (4096 if (bytes_unread > 4096 or bytes == 0) else bytes_unread)
 				var_return += self.resource.read(part_size)
 				if (bytes > 0): bytes_unread -= part_size
 			#
@@ -559,8 +545,7 @@ Opens a file session.
 			file_pathname_os = path.normpath(file_pathname)
 			var_return = True
 
-			if (readonly): self.readonly = True
-			else: self.readonly = False
+			self.readonly = (True if (readonly) else False)
 
 			if (path.exists(file_pathname_os)): exists = True
 			elif (not self.readonly):
@@ -586,8 +571,7 @@ Opens a file session.
 			#
 			else:
 			#
-				if (bytes != _unicode_object['type'] or file_mode.find("b") < 0): self.binary = False
-				else: self.binary = True
+				self.binary = (False if (bytes != _unicode_object['type'] or file_mode.find("b") < 0) else True)
 
 				if (self.chmod != None and (not exists)): os.chmod(file_pathname_os, self.chmod)
 				self.resource_file_pathname = file_pathname
@@ -632,13 +616,11 @@ Write content to the active file session.
 			timeout_time = time.time()
 			var_return = True
 
-			if (timeout < 0): timeout_time += self.timeout_retries
-			else: timeout_time += timeout
+			timeout_time += (self.timeout_retries if (timeout < 0) else timeout)
 
 			while (var_return and bytes_unwritten > 0 and time.time() < timeout_time):
 			#
-				if (bytes_unwritten > 4096): part_size = 4096
-				else: part_size = bytes_unwritten
+				part_size = (4096 if (bytes_unwritten > 4096) else bytes_unwritten)
 
 				try:
 				#
