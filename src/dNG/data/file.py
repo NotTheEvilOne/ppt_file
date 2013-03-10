@@ -10,13 +10,13 @@ file.py
 Working with a file abstraction layer
 ----------------------------------------------------------------------------
 (C) direct Netware Group - All rights reserved
-http://www.direct-netware.de/redirect.php?py;file
+http://www.direct-netware.de/redirect.py?py;file
 
 This Source Code Form is subject to the terms of the Mozilla Public License,
 v. 2.0. If a copy of the MPL was not distributed with this file, You can
 obtain one at http://mozilla.org/MPL/2.0/.
 ----------------------------------------------------------------------------
-http://www.direct-netware.de/redirect.php?licenses;mpl2
+http://www.direct-netware.de/redirect.py?licenses;mpl2
 ----------------------------------------------------------------------------
 #echo(pyFileVersion)#
 #echo(__FILEPATH__)#
@@ -45,7 +45,7 @@ Get file objects to work with files easily.
 :copyright: direct Netware Group - All rights reserved
 :package:   file.py
 :since:     v0.1.00
-:license:   http://www.direct-netware.de/redirect.php?licenses;mpl2
+:license:   http://www.direct-netware.de/redirect.py?licenses;mpl2
             Mozilla Public License, v. 2.0
 	"""
 
@@ -102,7 +102,7 @@ Construct the class
 	def __init__(self, default_umask = None, default_chmod = None, timeout_retries = 5, event_handler = None):
 	#
 		"""
-Constructor __init__ (direct_file)
+Constructor __init__(direct_file)
 
 :param default_umask: umask to set before creating a new file
 :param default_chmod: chmod to set when creating a new file
@@ -112,7 +112,7 @@ Constructor __init__ (direct_file)
 :since: v0.1.00
 		"""
 
-		if (event_handler != None): event_handler.debug("#echo(__FILEPATH__)# -file.__init__(direct_file)- (#echo(__LINE__)#)")
+		if (event_handler != None): event_handler.debug("#echo(__FILEPATH__)# -file.__init__()- (#echo(__LINE__)#)")
 
 		if (default_chmod == None): self.chmod = default_chmod
 		else:
@@ -147,18 +147,7 @@ Constructor __init__ (direct_file)
 	def __del__(self):
 	#
 		"""
-Destructor __del__ (direct_file)
-
-:since: v0.1.00
-		"""
-
-		self.del_file()
-	#
-
-	def del_file(self):
-	#
-		"""
-Destructor direct_file
+Destructor __del__(direct_file)
 
 :since: v0.1.00
 		"""
@@ -334,6 +323,7 @@ Runs flock or an alternative locking mechanism.
 :param file_pathname: Alternative path to the locking file (used for
                       _direct_file_locking_alternative)
 
+:access: protected
 :return: (bool) True on success
 :since:  v0.1.00
 		"""
