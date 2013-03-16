@@ -95,10 +95,6 @@ Retries before timing out
 umask to set before creating a new file
 	"""
 
-	"""
-Construct the class
-	"""
-
 	def __init__(self, default_umask = None, default_chmod = None, timeout_retries = 5, event_handler = None):
 	#
 		"""
@@ -484,7 +480,7 @@ Sets the EventHandler.
 :since: v0.1.00
 		"""
 
-		if (event_handler != None): event_handler.debug("#echo(__FILEPATH__)# -file.set_event_handler(+event_handler)- (#echo(__LINE__)#)")
+		if (event_handler != None): event_handler.debug("#echo(__FILEPATH__)# -file.set_event_handler(event_handler)- (#echo(__LINE__)#)")
 		self.event_handler = event_handler
 	#
 
