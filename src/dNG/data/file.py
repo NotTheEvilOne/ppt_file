@@ -49,52 +49,6 @@ Get file objects to work with files easily.
             Mozilla Public License, v. 2.0
 	"""
 
-	binary = False
-	"""
-Binary file flag
-	"""
-	chmod = None
-	"""
-chmod to set when creating a new file
-	"""
-	event_handler = None
-	"""
-The EventHandler is called whenever debug messages should be logged or errors
-happened.
-	"""
-	readonly = False
-	"""
-True if file is opened read-only
-	"""
-	resource = None
-	"""
-Resource to the opened file
-	"""
-	resource_file_pathname = ""
-	"""
-Filename for the resource pointer
-	"""
-	resource_file_size = -1
-	"""
-File size of the resource pointer
-	"""
-	resource_lock = "r"
-	"""
-Current locking mode
-	"""
-	time = -1
-	"""
-Current UNIX timestamp
-	"""
-	timeout_retries = 5
-	"""
-Retries before timing out
-	"""
-	umask = None
-	"""
-umask to set before creating a new file
-	"""
-
 	def __init__(self, default_umask = None, default_chmod = None, timeout_retries = 5, event_handler = None):
 	#
 		"""
@@ -109,6 +63,48 @@ Constructor __init__(direct_file)
 		"""
 
 		if (event_handler != None): event_handler.debug("#echo(__FILEPATH__)# -file.__init__()- (#echo(__LINE__)#)")
+
+		self.binary = False
+		"""
+Binary file flag
+		"""
+		self.chmod = None
+		"""
+chmod to set when creating a new file
+		"""
+		self.event_handler = event_handler
+		"""
+The EventHandler is called whenever debug messages should be logged or errors
+	happened.
+		"""
+		self.readonly = False
+		"""
+True if file is opened read-only
+		"""
+		self.resource = None
+		"""
+Resource to the opened file
+		"""
+		self.resource_file_pathname = ""
+		"""
+Filename for the resource pointer
+		"""
+		self.resource_file_size = -1
+		"""
+File size of the resource pointer
+		"""
+		self.resource_lock = "r"
+		"""
+Current locking mode
+		"""
+		self.timeout_retries = (5 if (timeout_retries == None) else timeout_retries)
+		"""
+Retries before timing out
+		"""
+		self.umask = default_umask
+		"""
+umask to set before creating a new file
+		"""
 
 		if (default_chmod == None): self.chmod = default_chmod
 		else:
@@ -129,15 +125,6 @@ Constructor __init__(direct_file)
 			if ((0o002 & default_chmod) == 0o002): self.chmod |= stat.S_IWOTH
 			if ((0o004 & default_chmod) == 0o004): self.chmod |= stat.S_IROTH
 		#
-
-		self.event_handler = event_handler
-		self.readonly = False
-		self.resource = None
-		self.resource_file_pathname = ""
-		self.resource_file_size = -1
-		self.resource_lock = "r"
-		self.timeout_retries = (5 if (timeout_retries == None) else timeout_retries)
-		self.umask = default_umask
 	#
 
 	def __del__(self):
