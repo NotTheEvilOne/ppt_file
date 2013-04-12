@@ -33,8 +33,8 @@ try:
 #
 except ImportError: _direct_file_locking_alternative = True
 
-try: _unicode_object = { "type": unicode, "str": unicode.encode }
-except: _unicode_object = { "type": bytes, "str": bytes.decode }
+try: _typed_object = { "bytes": unicode.encode, "bytes_type": str, "str": unicode.encode, "unicode_type": unicode }
+except: _typed_object = { "bytes": str.encode, "bytes_type": bytes, "str": bytes.decode, "unicode_type": str }
 
 class direct_file(object):
 #
@@ -217,7 +217,7 @@ Checks if the pointer is at EOF.
 		"""
 Returns the file pointer.
 
-:return: (mixed) File handle on success; false on error
+:return: (mixed) File handle; False on error
 :since:  v0.1.00
 		"""
 
@@ -232,7 +232,7 @@ Returns the file pointer.
 		"""
 Returns the current offset.
 
-:return: (mixed) Offset on success; false on error
+:return: (int) Offset; False on error
 :since:  v0.1.00
 		"""
 
@@ -253,10 +253,9 @@ Changes file locking if needed.
 :since: v0.1.00
 		"""
 
-		global _unicode_object
-		if (type(lock_mode) == _unicode_object['type']): lock_mode = _unicode_object['str'](lock_mode, "utf-8")
-
+		global _typed_object
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.lock({0})- (#echo(__LINE__)#)".format(lock_mode))
+
 		var_return = False
 
 		if (self.resource == None):
@@ -311,9 +310,8 @@ Runs flock or an alternative locking mechanism.
 :since:  v0.1.00
 		"""
 
-		global _direct_file_locking_alternative, _unicode_object
-		if (type(lock_mode) == _unicode_object['type']): lock_mode = _unicode_object['str'](lock_mode, "utf-8")
-		if (type(file_pathname) == _unicode_object['type']): file_pathname = _unicode_object['str'](file_pathname, "utf-8")
+		global _direct_file_locking_alternative, _typed_object
+		if (str != _typed_object['unicode'] and type(file_pathname) == _typed_object['unicode_type']): file_pathname = _typed_object['str'](file_pathname, "utf-8")
 
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.locking({0}, {1})- (#echo(__LINE__)#)".format(lock_mode, file_pathname))
 		var_return = False
@@ -389,11 +387,11 @@ Reads from the current file session.
               until EOF)
 :param timeout: Timeout to use (defaults to construction time value)
 
-:return: (mixed) Data on success; false on error
+:return: (mixed) Data; False on error
 :since:  v0.1.00
 		"""
 
-		global _unicode_object
+		global _typed_object
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.read({0:d}, {1:d})- (#echo(__LINE__)#)".format(bytes, timeout))
 
 		var_return = False
@@ -403,7 +401,7 @@ Reads from the current file session.
 			bytes_unread = bytes
 			timeout_time = time.time()
 
-			try: var_return = (_unicode_object['type']() if (self.binary) else "")
+			try: var_return = (_typed_object['bytes_type']() if (self.binary) else "")
 			except: var_return = ""
 
 			timeout_time += (self.timeout_retries if (timeout < 0) else timeout)
@@ -506,9 +504,8 @@ Opens a file session.
 :since:  v0.1.00
 		"""
 
-		global _unicode_object
-		if (type(file_pathname) == _unicode_object['type']): file_pathname = _unicode_object['str'](file_pathname, "utf-8")
-		if (type(file_mode) == _unicode_object['type']): file_mode = _unicode_object['str'](file_mode, "utf-8")
+		global _typed_object
+		if (str != _typed_object['unicode_type'] and type(file_pathname) == _typed_object['unicode_type']): file_pathname = _typed_object['str'](file_pathname, "utf-8")
 
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.open({0}, readonly, {1})- (#echo(__LINE__)#)".format(file_pathname, file_mode))
 
@@ -544,7 +541,7 @@ Opens a file session.
 			#
 			else:
 			#
-				self.binary = (False if (bytes != _unicode_object['type'] or file_mode.find("b") < 0) else True)
+				self.binary = (True if ("b" in file_mode and bytes == _typed_object['bytes_type']) else False)
 
 				if (self.chmod != None and (not exists)): os.chmod(file_pathname_os, self.chmod)
 				self.resource_file_pathname = file_pathname
@@ -574,11 +571,14 @@ Write content to the active file session.
 :since:  v0.1.00
 		"""
 
+		global _typed_object
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.write(data, {0:d})- (#echo(__LINE__)#)".format(timeout))
+
 		var_return = False
 
 		if (self.lock("w")):
 		#
+			if (self.binary and type(data) != _typed_object['bytes_type']): data = _typed_object['bytes'](data, "utf-8")
 			bytes_unwritten = len(data)
 			bytes_written = self.resource.tell()
 
