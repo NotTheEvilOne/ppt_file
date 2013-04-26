@@ -62,8 +62,6 @@ Constructor __init__(direct_file)
 :since: v0.1.00
 		"""
 
-		if (event_handler != None): event_handler.debug("#echo(__FILEPATH__)# -file.__init__()- (#echo(__LINE__)#)")
-
 		self.binary = False
 		"""
 Binary file flag
@@ -311,7 +309,7 @@ Runs flock or an alternative locking mechanism.
 		"""
 
 		global _direct_file_locking_alternative, _typed_object
-		if (str != _typed_object['unicode'] and type(file_pathname) == _typed_object['unicode_type']): file_pathname = _typed_object['str'](file_pathname, "utf-8")
+		if (str != _typed_object['unicode_type'] and type(file_pathname) == _typed_object['unicode_type']): file_pathname = _typed_object['str'](file_pathname, "utf-8")
 
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.locking({0}, {1})- (#echo(__LINE__)#)".format(lock_mode, file_pathname))
 		var_return = False
@@ -465,7 +463,6 @@ Sets the EventHandler.
 :since: v0.1.00
 		"""
 
-		if (event_handler != None): event_handler.debug("#echo(__FILEPATH__)# -file.set_event_handler(event_handler)- (#echo(__LINE__)#)")
 		self.event_handler = event_handler
 	#
 
