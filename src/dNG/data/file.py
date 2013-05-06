@@ -33,8 +33,20 @@ try:
 #
 except ImportError: _direct_file_locking_alternative = True
 
-try: _typed_object = { "bytes": unicode.encode, "bytes_type": str, "str": unicode.encode, "unicode_type": unicode }
-except: _typed_object = { "bytes": str.encode, "bytes_type": bytes, "str": bytes.decode, "unicode_type": str }
+try:
+#
+	_PY_BYTES = unicode.encode
+	_PY_BYTES_TYPE = str
+	_PY_STR = unicode.encode
+	_PY_UNICODE_TYPE = unicode
+#
+except:
+#
+	_PY_BYTES = str.encode
+	_PY_BYTES_TYPE = bytes
+	_PY_STR = bytes.decode
+	_PY_UNICODE_TYPE = str
+#
 
 class direct_file(object):
 #
@@ -251,7 +263,6 @@ Changes file locking if needed.
 :since: v0.1.00
 		"""
 
-		global _typed_object
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.lock({0})- (#echo(__LINE__)#)".format(lock_mode))
 
 		var_return = False
@@ -308,8 +319,8 @@ Runs flock or an alternative locking mechanism.
 :since:  v0.1.00
 		"""
 
-		global _direct_file_locking_alternative, _typed_object
-		if (str != _typed_object['unicode_type'] and type(file_pathname) == _typed_object['unicode_type']): file_pathname = _typed_object['str'](file_pathname, "utf-8")
+		global _direct_file_locking_alternative, _PY_STR, _PY_UNICODE_TYPE
+		if (str != _PY_UNICODE_TYPE and type(file_pathname) == _PY_UNICODE_TYPE): file_pathname = _PY_STR(file_pathname, "utf-8")
 
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.locking({0}, {1})- (#echo(__LINE__)#)".format(lock_mode, file_pathname))
 		var_return = False
@@ -389,7 +400,7 @@ Reads from the current file session.
 :since:  v0.1.00
 		"""
 
-		global _typed_object
+		global _PY_BYTES_TYPE
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.read({0:d}, {1:d})- (#echo(__LINE__)#)".format(bytes, timeout))
 
 		var_return = False
@@ -399,7 +410,7 @@ Reads from the current file session.
 			bytes_unread = bytes
 			timeout_time = time.time()
 
-			try: var_return = (_typed_object['bytes_type']() if (self.binary) else "")
+			try: var_return = (_PY_BYTES_TYPE() if (self.binary) else "")
 			except: var_return = ""
 
 			timeout_time += (self.timeout_retries if (timeout < 0) else timeout)
@@ -501,8 +512,8 @@ Opens a file session.
 :since:  v0.1.00
 		"""
 
-		global _typed_object
-		if (str != _typed_object['unicode_type'] and type(file_pathname) == _typed_object['unicode_type']): file_pathname = _typed_object['str'](file_pathname, "utf-8")
+		global _PY_BYTES_TYPE, _PY_STR, _PY_UNICODE_TYPE
+		if (str != _PY_UNICODE_TYPE and type(file_pathname) == _PY_UNICODE_TYPE): file_pathname = _PY_STR(file_pathname, "utf-8")
 
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.open({0}, readonly, {1})- (#echo(__LINE__)#)".format(file_pathname, file_mode))
 
@@ -538,7 +549,7 @@ Opens a file session.
 			#
 			else:
 			#
-				self.binary = (True if ("b" in file_mode and bytes == _typed_object['bytes_type']) else False)
+				self.binary = (True if ("b" in file_mode and bytes == _PY_BYTES_TYPE) else False)
 
 				if (self.chmod != None and (not exists)): os.chmod(file_pathname_os, self.chmod)
 				self.resource_file_pathname = file_pathname
@@ -568,14 +579,14 @@ Write content to the active file session.
 :since:  v0.1.00
 		"""
 
-		global _typed_object
+		global _PY_BYTES, _PY_BYTES_TYPE
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.write(data, {0:d})- (#echo(__LINE__)#)".format(timeout))
 
 		var_return = False
 
 		if (self.lock("w")):
 		#
-			if (self.binary and type(data) != _typed_object['bytes_type']): data = _typed_object['bytes'](data, "utf-8")
+			if (self.binary and type(data) != _PY_BYTES_TYPE): data = _PY_BYTES(data, "utf-8")
 			bytes_unwritten = len(data)
 			bytes_written = self.resource.tell()
 
