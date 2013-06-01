@@ -377,13 +377,13 @@ Runs flock or an alternative locking mechanism.
 		return var_return
 	#
 
-	def read(self, bytes = 0, timeout = -1):
+	def read(self, var_bytes = 0, timeout = -1):
 	#
 		"""
 Reads from the current file session.
 
-:param bytes: How many bytes to read from the current position (0 means
-              until EOF)
+:param var_bytes: How many bytes to read from the current position (0 means
+                  until EOF)
 :param timeout: Timeout to use (defaults to construction time value)
 
 :return: (mixed) Data; False on error
@@ -391,13 +391,13 @@ Reads from the current file session.
 		"""
 
 		global _PY_BYTES_TYPE
-		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.read({0:d}, {1:d})- (#echo(__LINE__)#)".format(bytes, timeout))
+		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.read({0:d}, {1:d})- (#echo(__LINE__)#)".format(var_bytes, timeout))
 
 		var_return = False
 
 		if (self.lock("r")):
 		#
-			bytes_unread = bytes
+			bytes_unread = var_bytes
 			timeout_time = time.time()
 
 			try: var_return = (_PY_BYTES_TYPE() if (self.binary) else "")
@@ -405,14 +405,14 @@ Reads from the current file session.
 
 			timeout_time += (self.timeout_retries if (timeout < 0) else timeout)
 
-			while ((bytes_unread > 0 or bytes == 0) and (not self.eof_check()) and time.time() < timeout_time):
+			while ((bytes_unread > 0 or var_bytes == 0) and (not self.eof_check()) and time.time() < timeout_time):
 			#
-				part_size = (4096 if (bytes_unread > 4096 or bytes == 0) else bytes_unread)
+				part_size = (4096 if (bytes_unread > 4096 or var_bytes == 0) else bytes_unread)
 				var_return += self.resource.read(part_size)
-				if (bytes > 0): bytes_unread -= part_size
+				if (var_bytes > 0): bytes_unread -= part_size
 			#
 
-			if ((bytes_unread > 0 or (bytes == 0 and self.eof_check())) and self.event_handler != None): self.event_handler.error("#echo(__FILEPATH__)# -file.read()- reporting: Timeout occured before EOF")
+			if ((bytes_unread > 0 or (var_bytes == 0 and self.eof_check())) and self.event_handler != None): self.event_handler.error("#echo(__FILEPATH__)# -file.read()- reporting: Timeout occured before EOF")
 		#
 
 		return var_return
