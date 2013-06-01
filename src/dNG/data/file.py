@@ -216,10 +216,7 @@ Checks if the pointer is at EOF.
 :since:  v0.1.00
 		"""
 
-		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.eof_check()- (#echo(__LINE__)#)")
-
-		if (self.resource == None or self.resource.tell() == self.resource_file_size): return True
-		else: return False
+		return (True if (self.resource == None or self.resource.tell() == self.resource_file_size) else False)
 	#
 
 	def get_handle(self):
@@ -231,10 +228,7 @@ Returns the file pointer.
 :since:  v0.1.00
 		"""
 
-		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.get_handle()- (#echo(__LINE__)#)")
-
-		if (self.resource == None): return False
-		else: return self.resource
+		return (False if (self.resource == None) else self.resource)
 	#
 
 	def get_position(self):
@@ -246,10 +240,7 @@ Returns the current offset.
 :since:  v0.1.00
 		"""
 
-		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.get_position()- (#echo(__LINE__)#)")
-
-		if (self.resource == None): return False
-		else: return self.resource.tell()
+		return (False if (self.resource == None) else self.resource.tell())
 	#
 
 	def lock (self, lock_mode):
@@ -322,7 +313,6 @@ Runs flock or an alternative locking mechanism.
 		global _direct_file_locking_alternative, _PY_STR, _PY_UNICODE_TYPE
 		if (str != _PY_UNICODE_TYPE and type(file_pathname) == _PY_UNICODE_TYPE): file_pathname = _PY_STR(file_pathname, "utf-8")
 
-		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.locking({0}, {1})- (#echo(__LINE__)#)".format(lock_mode, file_pathname))
 		var_return = False
 
 		if (len(file_pathname) < 1): file_pathname = self.resource_file_pathname
@@ -437,10 +427,7 @@ Returns true if the file resource is available.
 :since:  v0.1.00
 		"""
 
-		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.resource_check()- (#echo(__LINE__)#)")
-
-		if (self.resource == None): return False
-		else: return True
+		return (False if (self.resource == None) else True)
 	#
 
 	def seek(self, offset):
@@ -586,7 +573,7 @@ Write content to the active file session.
 
 		if (self.lock("w")):
 		#
-			if (self.binary and type(data) != _PY_BYTES_TYPE): data = _PY_BYTES(data, "utf-8")
+			if (self.binary and type(data) != _PY_BYTES_TYPE): data = _PY_BYTES(data, "raw_unicode_escape")
 			bytes_unwritten = len(data)
 			bytes_written = self.resource.tell()
 
