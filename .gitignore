@@ -2,6 +2,6 @@ _extras
 __py*
 .*
 *.pyc
-file.py.*
+file.*
 makefile.*
 nbproject

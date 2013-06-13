@@ -24,14 +24,16 @@ http://www.direct-netware.de/redirect.py?licenses;mpl2
 NOTE_END //n"""
 
 from os import path
-import os, stat, time
+import os
+import stat
+import time
 
 try:
 #
 	import fcntl
-	_direct_file_locking_alternative = False
+	_use_file_locking = False
 #
-except ImportError: _direct_file_locking_alternative = True
+except ImportError: _use_file_locking = True
 
 try:
 #
@@ -48,7 +50,7 @@ except:
 	_PY_UNICODE_TYPE = str
 #
 
-class direct_file(object):
+class File(object):
 #
 	"""
 Get file objects to work with files easily.
@@ -64,7 +66,7 @@ Get file objects to work with files easily.
 	def __init__(self, default_umask = None, default_chmod = None, timeout_retries = 5, event_handler = None):
 	#
 		"""
-Constructor __init__(direct_file)
+Constructor __init__(File)
 
 :param default_umask: umask to set before creating a new file
 :param default_chmod: chmod to set when creating a new file
@@ -140,7 +142,7 @@ umask to set before creating a new file
 	def __del__(self):
 	#
 		"""
-Destructor __del__(direct_file)
+Destructor __del__(File)
 
 :since: v0.1.00
 		"""
@@ -161,7 +163,7 @@ Closes an active file session.
 :since: v0.1.00
 		"""
 
-		global _direct_file_locking_alternative
+		global _use_file_locking
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.close(delete_empty)- (#echo(__LINE__)#)")
 		var_return = False
 
@@ -178,7 +180,7 @@ Closes an active file session.
 			self.resource.close()
 			var_return = True
 
-			if (self.resource_lock == "w" and _direct_file_locking_alternative):
+			if (self.resource_lock == "w" and _use_file_locking):
 			#
 				lock_pathname_os = path.normpath("{0}.lock".format(self.resource_file_pathname))
 
@@ -303,14 +305,14 @@ Runs flock or an alternative locking mechanism.
 
 :param lock_mode: The requested file locking mode ("r" or "w").
 :param file_pathname: Alternative path to the locking file (used for
-                      _direct_file_locking_alternative)
+                      _use_file_locking)
 
 :access: protected
 :return: (bool) True on success
 :since:  v0.1.00
 		"""
 
-		global _direct_file_locking_alternative, _PY_STR, _PY_UNICODE_TYPE
+		global _use_file_locking, _PY_STR, _PY_UNICODE_TYPE
 		if (str != _PY_UNICODE_TYPE and type(file_pathname) == _PY_UNICODE_TYPE): file_pathname = _PY_STR(file_pathname, "utf-8")
 
 		var_return = False
@@ -321,7 +323,7 @@ Runs flock or an alternative locking mechanism.
 		if (len(file_pathname) > 0 and self.resource != None):
 		#
 			if (lock_mode == "w" and self.readonly): var_return = False
-			elif (_direct_file_locking_alternative):
+			elif (_use_file_locking):
 			#
 				is_locked = path.exists(lock_pathname_os)
 
