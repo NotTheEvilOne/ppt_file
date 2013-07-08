@@ -165,7 +165,7 @@ Closes an active file session.
 
 		global _use_file_locking
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.close(delete_empty)- (#echo(__LINE__)#)")
-		var_return = False
+		_return = False
 
 		if (self.resource != None):
 		#
@@ -178,7 +178,7 @@ Closes an active file session.
 			#
 
 			self.resource.close()
-			var_return = True
+			_return = True
 
 			if (self.resource_lock == "w" and _use_file_locking):
 			#
@@ -194,10 +194,10 @@ Closes an active file session.
 			if ((not self.readonly) and delete_empty and file_position < 0):
 			#
 				file_pathname_os = path.normpath(self.resource_file_pathname)
-				var_return = True
+				_return = True
 
 				try: os.unlink(file_pathname_os)
-				except: var_return = False
+				except: _return = False
 			#
 
 			self.readonly = False
@@ -206,7 +206,7 @@ Closes an active file session.
 			self.resource_file_size = -1
 		#
 
-		return var_return
+		return _return
 	#
 
 	def eof_check(self):
@@ -245,7 +245,7 @@ Returns the current offset.
 		return (False if (self.resource == None) else self.resource.tell())
 	#
 
-	def lock (self, lock_mode):
+	def lock(self, lock_mode):
 	#
 		"""
 Changes file locking if needed.
@@ -258,7 +258,7 @@ Changes file locking if needed.
 
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.lock({0})- (#echo(__LINE__)#)".format(lock_mode))
 
-		var_return = False
+		_return = False
 
 		if (self.resource == None):
 		#
@@ -270,16 +270,16 @@ Changes file locking if needed.
 			#
 				if (self.event_handler != None): self.event_handler.error("#echo(__FILEPATH__)# -file.lock()- reporting: File resource is in readonly mode")
 			#
-			elif (lock_mode == self.resource_lock): var_return = True
+			elif (lock_mode == self.resource_lock): _return = True
 			else:
 			#
 				timeout_retries = self.timeout_retries
 
 				while (timeout_retries > 0):
 				#
-					if (self.locking(lock_mode)):
+					if (self._locking(lock_mode)):
 					#
-						var_return = True
+						_return = True
 						timeout_retries = -1
 
 						self.resource_lock = ("w" if (lock_mode == "w") else "r")
@@ -295,10 +295,10 @@ Changes file locking if needed.
 			#
 		#
 
-		return var_return
+		return _return
 	#
 
-	def locking (self, lock_mode, file_pathname = ""):
+	def _locking(self, lock_mode, file_pathname = ""):
 	#
 		"""
 Runs flock or an alternative locking mechanism.
@@ -307,7 +307,6 @@ Runs flock or an alternative locking mechanism.
 :param file_pathname: Alternative path to the locking file (used for
                       _use_file_locking)
 
-:access: protected
 :return: (bool) True on success
 :since:  v0.1.00
 		"""
@@ -315,14 +314,14 @@ Runs flock or an alternative locking mechanism.
 		global _use_file_locking, _PY_STR, _PY_UNICODE_TYPE
 		if (str != _PY_UNICODE_TYPE and type(file_pathname) == _PY_UNICODE_TYPE): file_pathname = _PY_STR(file_pathname, "utf-8")
 
-		var_return = False
+		_return = False
 
 		if (len(file_pathname) < 1): file_pathname = self.resource_file_pathname
 		lock_pathname_os = path.normpath("{0}.lock".format(file_pathname))
 
 		if (len(file_pathname) > 0 and self.resource != None):
 		#
-			if (lock_mode == "w" and self.readonly): var_return = False
+			if (lock_mode == "w" and self.readonly): _return = False
 			elif (_use_file_locking):
 			#
 				is_locked = path.exists(lock_pathname_os)
@@ -341,13 +340,13 @@ Runs flock or an alternative locking mechanism.
 
 				if (lock_mode == "w"):
 				#
-					if (is_locked and self.resource_lock == "w"): var_return = True
+					if (is_locked and self.resource_lock == "w"): _return = True
 					elif (not is_locked):
 					#
 						try:
 						#
 							file(lock_pathname_os, "w").close()
-							var_return = True
+							_return = True
 						#
 						except: pass
 					#
@@ -357,11 +356,11 @@ Runs flock or an alternative locking mechanism.
 					try:
 					#
 						os.unlink(lock_pathname_os)
-						var_return = True
+						_return = True
 					#
 					except: pass
 				#
-				elif (not is_locked): var_return = True
+				elif (not is_locked): _return = True
 			#
 			else:
 			#
@@ -370,21 +369,21 @@ Runs flock or an alternative locking mechanism.
 				try:
 				#
 					fcntl.flock(self.resource, operation)
-					var_return = True
+					_return = True
 				#
 				except: pass
 			#
 		#
 
-		return var_return
+		return _return
 	#
 
-	def read(self, var_bytes = 0, timeout = -1):
+	def read(self, _bytes = 0, timeout = -1):
 	#
 		"""
 Reads from the current file session.
 
-:param var_bytes: How many bytes to read from the current position (0 means
+:param _bytes: How many bytes to read from the current position (0 means
                   until EOF)
 :param timeout: Timeout to use (defaults to construction time value)
 
@@ -393,31 +392,31 @@ Reads from the current file session.
 		"""
 
 		global _PY_BYTES_TYPE
-		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.read({0:d}, {1:d})- (#echo(__LINE__)#)".format(var_bytes, timeout))
+		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.read({0:d}, {1:d})- (#echo(__LINE__)#)".format(_bytes, timeout))
 
-		var_return = False
+		_return = False
 
 		if (self.lock("r")):
 		#
-			bytes_unread = var_bytes
+			bytes_unread = _bytes
 			timeout_time = time.time()
 
-			try: var_return = (_PY_BYTES_TYPE() if (self.binary) else "")
-			except: var_return = ""
+			try: _return = (_PY_BYTES_TYPE() if (self.binary) else "")
+			except: _return = ""
 
 			timeout_time += (self.timeout_retries if (timeout < 0) else timeout)
 
-			while ((bytes_unread > 0 or var_bytes == 0) and (not self.eof_check()) and time.time() < timeout_time):
+			while ((bytes_unread > 0 or _bytes == 0) and (not self.eof_check()) and time.time() < timeout_time):
 			#
-				part_size = (4096 if (bytes_unread > 4096 or var_bytes == 0) else bytes_unread)
-				var_return += self.resource.read(part_size)
-				if (var_bytes > 0): bytes_unread -= part_size
+				part_size = (4096 if (bytes_unread > 4096 or _bytes == 0) else bytes_unread)
+				_return += self.resource.read(part_size)
+				if (_bytes > 0): bytes_unread -= part_size
 			#
 
-			if ((bytes_unread > 0 or (var_bytes == 0 and self.eof_check())) and self.event_handler != None): self.event_handler.error("#echo(__FILEPATH__)# -file.read()- reporting: Timeout occured before EOF")
+			if ((bytes_unread > 0 or (_bytes == 0 and self.eof_check())) and self.event_handler != None): self.event_handler.error("#echo(__FILEPATH__)# -file.read()- reporting: Timeout occured before EOF")
 		#
 
-		return var_return
+		return _return
 	#
 
 	def resource_check(self):
@@ -510,7 +509,7 @@ Opens a file session.
 		#
 			exists = False
 			file_pathname_os = path.normpath(file_pathname)
-			var_return = True
+			_return = True
 
 			self.readonly = (True if (readonly) else False)
 
@@ -519,9 +518,9 @@ Opens a file session.
 			#
 				if (self.umask != None): os.umask(int(self.umask, 8))
 			#
-			else: var_return = False
+			else: _return = False
 
-			if (var_return):
+			if (_return):
 			#
 				try: self.resource = open(file_pathname_os, file_mode)
 				except: pass
@@ -551,9 +550,9 @@ Opens a file session.
 				#
 			#
 		#
-		else: var_return = False
+		else: _return = False
 
-		return var_return
+		return _return
 	#
 
 	def write(self, data, timeout = -1):
@@ -571,7 +570,7 @@ Write content to the active file session.
 		global _PY_BYTES, _PY_BYTES_TYPE
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.write(data, {0:d})- (#echo(__LINE__)#)".format(timeout))
 
-		var_return = False
+		_return = False
 
 		if (self.lock("w")):
 		#
@@ -584,11 +583,11 @@ Write content to the active file session.
 
 			bytes_written = 0
 			timeout_time = time.time()
-			var_return = True
+			_return = True
 
 			timeout_time += (self.timeout_retries if (timeout < 0) else timeout)
 
-			while (var_return and bytes_unwritten > 0 and time.time() < timeout_time):
+			while (_return and bytes_unwritten > 0 and time.time() < timeout_time):
 			#
 				part_size = (4096 if (bytes_unwritten > 4096) else bytes_unwritten)
 
@@ -598,19 +597,19 @@ Write content to the active file session.
 					bytes_unwritten -= part_size
 					bytes_written += part_size
 				#
-				except: var_return = False
+				except: _return = False
 			#
 
 			if (bytes_unwritten > 0):
 			#
-				var_return = False
+				_return = False
 				self.resource_file_size = path.getsize(path.normpath(self.resource_file_pathname))
 				if (self.event_handler != None): self.event_handler.error("#echo(__FILEPATH__)# -file.write()- reporting: Timeout occured before EOF")
 			#
 			elif (new_size > 0): self.resource_file_size = new_size
 		#
 
-		return var_return
+		return _return
 	#
 #
 
