@@ -345,7 +345,7 @@ Runs flock or an alternative locking mechanism.
 					#
 						try:
 						#
-							file(lock_pathname_os, "w").close()
+							open(lock_pathname_os, "w").close()
 							_return = True
 						#
 						except: pass
