@@ -42,7 +42,7 @@ try:
 	_PY_STR = unicode.encode
 	_PY_UNICODE_TYPE = unicode
 #
-except:
+except NameError:
 #
 	_PY_BYTES = str.encode
 	_PY_BYTES_TYPE = bytes
@@ -187,7 +187,7 @@ Closes an active file session.
 				if (path.exists(lock_pathname_os)):
 				#
 					try: os.unlink(lock_pathname_os)
-					except: pass
+					except IOError: pass
 				#
 			#
 
@@ -197,7 +197,7 @@ Closes an active file session.
 				_return = True
 
 				try: os.unlink(file_pathname_os)
-				except: _return = False
+				except IOError: _return = False
 			#
 
 			self.readonly = False
@@ -333,7 +333,7 @@ Runs flock or an alternative locking mechanism.
 					if ((time.time() - self.timeout_retries) < path.getmtime(lock_pathname_os)):
 					#
 						try: os.unlink(lock_pathname_os)
-						except: pass
+						except IOError: pass
 					#
 					else: is_locked = True
 				#
@@ -348,7 +348,7 @@ Runs flock or an alternative locking mechanism.
 							open(lock_pathname_os, "w").close()
 							_return = True
 						#
-						except: pass
+						except IOError: pass
 					#
 				#
 				elif (is_locked and self.resource_lock == "w"):
@@ -358,7 +358,7 @@ Runs flock or an alternative locking mechanism.
 						os.unlink(lock_pathname_os)
 						_return = True
 					#
-					except: pass
+					except IOError: pass
 				#
 				elif (not is_locked): _return = True
 			#
@@ -371,7 +371,7 @@ Runs flock or an alternative locking mechanism.
 					fcntl.flock(self.resource, operation)
 					_return = True
 				#
-				except: pass
+				except Exception: pass
 			#
 		#
 
@@ -401,9 +401,7 @@ Reads from the current file session.
 			bytes_unread = _bytes
 			timeout_time = time.time()
 
-			try: _return = (_PY_BYTES_TYPE() if (self.binary) else "")
-			except: _return = ""
-
+			_return = (_PY_BYTES_TYPE() if (self.binary) else "")
 			timeout_time += (self.timeout_retries if (timeout < 0) else timeout)
 
 			while ((bytes_unread > 0 or _bytes == 0) and (not self.eof_check()) and time.time() < timeout_time):
@@ -523,7 +521,7 @@ Opens a file session.
 			if (_return):
 			#
 				try: self.resource = open(file_pathname_os, file_mode)
-				except: pass
+				except IOError: pass
 			#
 			elif (self.event_handler != None): self.event_handler.warning("#echo(__FILEPATH__)# -file.open()- reporting: Failed opening {0} - file does not exist".format(file_pathname))
 
@@ -532,7 +530,7 @@ Opens a file session.
 				if ((not exists) and (not self.readonly)):
 				#
 					try: os.unlink(file_pathname_os)
-					except: pass
+					except IOError: pass
 				#
 			#
 			else:
@@ -597,7 +595,7 @@ Write content to the active file session.
 					bytes_unwritten -= part_size
 					bytes_written += part_size
 				#
-				except: _return = False
+				except IOError: _return = False
 			#
 
 			if (bytes_unwritten > 0):
