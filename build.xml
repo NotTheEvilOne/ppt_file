@@ -12,11 +12,11 @@ obtain one at http://mozilla.org/MPL/2.0/.
 
 http://www.direct-netware.de/redirect.py?licenses;mpl2
 // -->
-<project name="file.py" default="compile.pyBuilder">
+<project name="file.py" default="compile.src">
 	<dirname property="src.basedir" file="${ant.file}" />
 	<property file="${src.basedir}/_extras/build.properties" />
 
-	<target name="compile.pyBuilder" description="Compile src.py ${ant.project.name}">
+	<target name="compile.src" description="Compile src.py ${ant.project.name}">
 		<exec executable="python" dir="${src.basedir}">
 			<arg file="${pyBuilder.filePathName}" />
 			<arg value="--filetype=${pyBuilder.fileTypes}" />
