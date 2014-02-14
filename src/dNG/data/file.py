@@ -23,6 +23,8 @@ http://www.direct-netware.de/redirect.py?licenses;mpl2
 ----------------------------------------------------------------------------
 NOTE_END //n"""
 
+# pylint: disable=import-error,invalid-name,undefined-variable
+
 from os import path
 import os
 import stat
@@ -163,7 +165,8 @@ Closes an active file session.
 :since: v0.1.00
 		"""
 
-		global _use_file_locking
+		# global: _use_file_locking
+
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.close(delete_empty)- (#echo(__LINE__)#)")
 		_return = False
 
@@ -287,7 +290,7 @@ Changes file locking if needed.
 					else:
 					#
 						timeout_retries -= 1
-						time.sleep(1);
+						time.sleep(1)
 					#
 				#
 
@@ -311,7 +314,9 @@ Runs flock or an alternative locking mechanism.
 :since:  v0.1.00
 		"""
 
-		global _use_file_locking, _PY_STR, _PY_UNICODE_TYPE
+		# global: _PY_STR, _PY_UNICODE_TYPE, _use_file_locking
+		# pylint: disable=broad-except
+
 		if (str != _PY_UNICODE_TYPE and type(file_pathname) == _PY_UNICODE_TYPE): file_pathname = _PY_STR(file_pathname, "utf-8")
 
 		_return = False
@@ -391,7 +396,8 @@ Reads from the current file session.
 :since:  v0.1.00
 		"""
 
-		global _PY_BYTES_TYPE
+		# global: _PY_BYTES_TYPE
+
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.read({0:d}, {1:d})- (#echo(__LINE__)#)".format(_bytes, timeout))
 
 		_return = False
@@ -498,7 +504,8 @@ Opens a file session.
 :since:  v0.1.00
 		"""
 
-		global _PY_BYTES_TYPE, _PY_STR, _PY_UNICODE_TYPE
+		# global: _PY_BYTES_TYPE, _PY_STR, _PY_UNICODE_TYPE
+
 		if (str != _PY_UNICODE_TYPE and type(file_pathname) == _PY_UNICODE_TYPE): file_pathname = _PY_STR(file_pathname, "utf-8")
 
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.open({0}, readonly, {1})- (#echo(__LINE__)#)".format(file_pathname, file_mode))
@@ -565,7 +572,8 @@ Write content to the active file session.
 :since:  v0.1.00
 		"""
 
-		global _PY_BYTES, _PY_BYTES_TYPE
+		# global: _PY_BYTES, _PY_BYTES_TYPE
+
 		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.write(data, {0:d})- (#echo(__LINE__)#)".format(timeout))
 
 		_return = False
