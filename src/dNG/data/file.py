@@ -417,7 +417,10 @@ Reads from the current file session.
 				if (_bytes > 0): bytes_unread -= part_size
 			#
 
-			if ((bytes_unread > 0 or (_bytes == 0 and self.eof_check())) and self.event_handler != None): self.event_handler.error("#echo(__FILEPATH__)# -file.read()- reporting: Timeout occured before EOF")
+			if (
+				(bytes_unread > 0 or (_bytes == 0 and self.eof_check())) and
+				self.event_handler != None
+			): self.event_handler.error("#echo(__FILEPATH__)# -file.read()- reporting: Timeout occured before EOF")
 		#
 
 		return _return
@@ -584,8 +587,8 @@ Write content to the active file session.
 			bytes_unwritten = len(data)
 			bytes_written = self.resource.tell()
 
-			if ((bytes_written + bytes_unwritten) > self.resource_file_size): new_size = bytes_written + bytes_unwritten - self.resource_file_size
-			else: new_size = 0
+			if ((bytes_written + bytes_unwritten) <= self.resource_file_size): new_size = 0
+			else: new_size = (bytes_written + bytes_unwritten)
 
 			bytes_written = 0
 			timeout_time = time.time()
