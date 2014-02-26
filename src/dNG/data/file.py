@@ -2,12 +2,10 @@
 ##j## BOF
 
 """
-File functions class to use some advanced locking mechanisms.
-"""
-"""n// NOTE
-----------------------------------------------------------------------------
 file.py
 Working with a file abstraction layer
+"""
+"""n// NOTE
 ----------------------------------------------------------------------------
 (C) direct Netware Group - All rights reserved
 http://www.direct-netware.de/redirect.py?py;file
