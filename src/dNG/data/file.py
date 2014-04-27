@@ -433,7 +433,7 @@ Returns true if the file resource is available.
 :since:  v0.1.00
 		"""
 
-		return (False if (self.resource == None) else True)
+		return (self.resource != None)
 	#
 
 	def seek(self, offset):
