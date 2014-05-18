@@ -210,18 +210,6 @@ Closes an active file session.
 		return _return
 	#
 
-	def eof_check(self):
-	#
-		"""
-Checks if the pointer is at EOF.
-
-:return: (bool) True on success
-:since:  v0.1.00
-		"""
-
-		return (True if (self.resource == None or self.resource.tell() == self.resource_file_size) else False)
-	#
-
 	def get_handle(self):
 	#
 		"""
@@ -244,6 +232,30 @@ Returns the current offset.
 		"""
 
 		return (False if (self.resource == None) else self.resource.tell())
+	#
+
+	def is_eof(self):
+	#
+		"""
+Checks if the pointer is at EOF.
+
+:return: (bool) True on success
+:since:  v0.1.00
+		"""
+
+		return (True if (self.resource == None or self.resource.tell() == self.resource_file_size) else False)
+	#
+
+	def is_resource_valid(self):
+	#
+		"""
+Returns true if the file resource is available.
+
+:return: (bool) True on success
+:since:  v0.1.00
+		"""
+
+		return (self.resource != None)
 	#
 
 	def lock(self, lock_mode):
@@ -408,7 +420,7 @@ Reads from the current file session.
 			_return = (_PY_BYTES_TYPE() if (self.binary) else "")
 			timeout_time += (self.timeout_retries if (timeout < 0) else timeout)
 
-			while ((bytes_unread > 0 or _bytes == 0) and (not self.eof_check()) and time.time() < timeout_time):
+			while ((bytes_unread > 0 or _bytes == 0) and (not self.is_eof()) and time.time() < timeout_time):
 			#
 				part_size = (4096 if (bytes_unread > 4096 or _bytes == 0) else bytes_unread)
 				_return += self.resource.read(part_size)
@@ -416,24 +428,12 @@ Reads from the current file session.
 			#
 
 			if (
-				(bytes_unread > 0 or (_bytes == 0 and self.eof_check())) and
+				(bytes_unread > 0 or (_bytes == 0 and self.is_eof())) and
 				self.event_handler != None
 			): self.event_handler.error("#echo(__FILEPATH__)# -file.read()- reporting: Timeout occured before EOF")
 		#
 
 		return _return
-	#
-
-	def resource_check(self):
-	#
-		"""
-Returns true if the file resource is available.
-
-:return: (bool) True on success
-:since:  v0.1.00
-		"""
-
-		return (self.resource != None)
 	#
 
 	def seek(self, offset):
