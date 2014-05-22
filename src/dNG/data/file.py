@@ -427,10 +427,9 @@ Reads from the current file session.
 				if (_bytes > 0): bytes_unread -= part_size
 			#
 
-			if (
-				(bytes_unread > 0 or (_bytes == 0 and self.is_eof())) and
-				self.event_handler != None
-			): self.event_handler.error("#echo(__FILEPATH__)# -file.read()- reporting: Timeout occured before EOF")
+			if ((bytes_unread > 0 or (_bytes == 0 and self.is_eof()))
+			    and self.event_handler != None
+			   ): self.event_handler.error("#echo(__FILEPATH__)# -file.read()- reporting: Timeout occured before EOF")
 		#
 
 		return _return
