@@ -495,7 +495,7 @@ Opens a file session.
 
 :param file_pathname: Path to the requested file
 :param readonly: Open file in readonly mode
-:param file_mode: Filemode to use
+:param file_mode: File mode to use
 
 :return: (bool) True on success
 :since:  v0.1.00
@@ -522,9 +522,11 @@ Opens a file session.
 			#
 			else: _return = False
 
+			is_binary = (True if ("b" in file_mode and bytes == _PY_BYTES_TYPE) else False)
+
 			if (_return):
 			#
-				try: self.resource = open(file_pathname_os, file_mode)
+				try: self.resource = self._open(file_pathname, file_mode, is_binary)
 				except IOError: pass
 			#
 			elif (self.event_handler != None): self.event_handler.warning("#echo(__FILEPATH__)# -file.open()- reporting: Failed opening {0} - file does not exist".format(file_pathname))
@@ -539,7 +541,7 @@ Opens a file session.
 			#
 			else:
 			#
-				self.binary = (True if ("b" in file_mode and bytes == _PY_BYTES_TYPE) else False)
+				self.binary = is_binary
 
 				if (self.chmod != None and (not exists)): os.chmod(file_pathname_os, self.chmod)
 				self.resource_file_pathname = file_pathname
@@ -554,6 +556,31 @@ Opens a file session.
 		#
 		else: _return = False
 
+		return _return
+	#
+
+	def _open(self, file_pathname_os, file_mode, is_binary):
+	#
+		"""
+Opens a file resource and sets the encoding to UTF-8.
+
+:param file_pathname_os: Path to the requested file
+:param file_mode: File mode to use
+:param is_binary: False if the file is an UTF-8 (or ASCII) encoded one
+
+:return: (object) File
+:since:  v0.1.01
+		"""
+
+		_return = None
+
+		if (not is_binary):
+		#
+			try: _return = open(file_pathname_os, file_mode, encoding = "utf-8")
+			except TypeError: pass
+		#
+
+		if (_return == None): _return = open(file_pathname_os, file_mode)
 		return _return
 	#
 
