@@ -1,7 +1,7 @@
-_extras
 __py*
 .*
 *.pyc
-file.*
-makefile.*
 nbproject
+/_extras
+/file.*
+/makefile.*
