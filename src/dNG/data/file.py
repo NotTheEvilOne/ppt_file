@@ -289,10 +289,11 @@ Changes file locking if needed.
 				#
 					if (self._locking(lock_mode)):
 					#
+						self.resource_lock = ("w" if (lock_mode == "w") else "r")
 						_return = True
 						timeout_retries = -1
 
-						self.resource_lock = ("w" if (lock_mode == "w") else "r")
+						break
 					#
 					else:
 					#
@@ -617,7 +618,7 @@ Write content to the active file session.
 
 			timeout_time += (self.timeout_retries if (timeout < 0) else timeout)
 
-			while (_return and bytes_unwritten > 0 and time.time() < timeout_time):
+			while (bytes_unwritten > 0 and time.time() < timeout_time):
 			#
 				part_size = (4096 if (bytes_unwritten > 4096) else bytes_unwritten)
 
@@ -627,7 +628,11 @@ Write content to the active file session.
 					bytes_unwritten -= part_size
 					bytes_written += part_size
 				#
-				except IOError: _return = False
+				except IOError:
+				#
+					_return = False
+					break
+				#
 			#
 
 			if (bytes_unwritten > 0):
