@@ -151,7 +151,7 @@ Destructor __del__(File)
 	def close(self, delete_empty = True):
 	#
 		"""
-Closes an active file session.
+Closes an active file handle.
 
 :param delete_empty: If the file handle is valid, the file is empty and
                      this parameter is true then the file will be deleted.
@@ -167,12 +167,12 @@ Closes an active file session.
 
 		if (self.resource != None):
 		#
-			file_position = self.get_position()
+			file_position = self.tell()
 
 			if ((not self.readonly) and delete_empty and (not file_position)):
 			#
 				self.read(1)
-				file_position = self.get_position()
+				file_position = self.tell()
 			#
 
 			self.resource.close()
@@ -207,6 +207,28 @@ Closes an active file session.
 		return _return
 	#
 
+	def flush(self):
+	#
+		"""
+Flushes all cached data to the file.
+
+:return: (bool) True on success
+:since:  v0.1.00
+		"""
+
+		_return = False
+
+		if (self.resource != None):
+		#
+			_return = True
+
+			self.resource.flush()
+			os.fsync(self.resource.fileno())
+		#
+
+		return _return
+	#
+
 	def get_handle(self):
 	#
 		"""
@@ -217,18 +239,6 @@ Returns the file pointer.
 		"""
 
 		return (False if (self.resource == None) else self.resource)
-	#
-
-	def get_position(self):
-	#
-		"""
-Returns the current offset.
-
-:return: (int) Offset; False on error
-:since:  v0.1.00
-		"""
-
-		return (False if (self.resource == None) else self.resource.tell())
 	#
 
 	def is_eof(self):
@@ -391,13 +401,110 @@ Runs flock or an alternative locking mechanism.
 		return _return
 	#
 
+	def open(self, file_pathname, readonly = False, file_mode = "a+b"):
+	#
+		"""
+Opens a file session.
+
+:param file_pathname: Path to the requested file
+:param readonly: Open file in readonly mode
+:param file_mode: File mode to use
+
+:return: (bool) True on success
+:since:  v0.1.00
+		"""
+
+		# global: _PY_BYTES_TYPE, _PY_STR, _PY_UNICODE_TYPE
+
+		if (str != _PY_UNICODE_TYPE and type(file_pathname) == _PY_UNICODE_TYPE): file_pathname = _PY_STR(file_pathname, "utf-8")
+
+		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.open({0}, readonly, {1})- (#echo(__LINE__)#)".format(file_pathname, file_mode))
+
+		if (self.resource == None):
+		#
+			exists = False
+			file_pathname_os = path.normpath(file_pathname)
+			_return = True
+
+			self.readonly = (True if (readonly) else False)
+
+			if (path.exists(file_pathname_os)): exists = True
+			elif (not self.readonly):
+			#
+				if (self.umask != None): os.umask(int(self.umask, 8))
+			#
+			else: _return = False
+
+			is_binary = (True if ("b" in file_mode and bytes == _PY_BYTES_TYPE) else False)
+
+			if (_return):
+			#
+				try: self.resource = self._open(file_pathname, file_mode, is_binary)
+				except IOError: _return = False
+			#
+			elif (self.event_handler != None): self.event_handler.warning("#echo(__FILEPATH__)# -file.open()- reporting: Failed opening {0} - file does not exist".format(file_pathname))
+
+			if (self.resource == None):
+			#
+				if ((not exists) and (not self.readonly)):
+				#
+					try: os.unlink(file_pathname_os)
+					except IOError: pass
+				#
+			#
+			else:
+			#
+				self.binary = is_binary
+
+				if (self.chmod != None and (not exists)): os.chmod(file_pathname_os, self.chmod)
+				self.resource_file_pathname = file_pathname
+
+				if (self.lock("r")): self.resource_file_size = path.getsize(file_pathname_os)
+				else:
+				#
+					_return = False
+					self.close(not exists)
+					self.resource = None
+				#
+			#
+		#
+		else: _return = False
+
+		return _return
+	#
+
+	def _open(self, file_pathname_os, file_mode, is_binary):
+	#
+		"""
+Opens a file resource and sets the encoding to UTF-8.
+
+:param file_pathname_os: Path to the requested file
+:param file_mode: File mode to use
+:param is_binary: False if the file is an UTF-8 (or ASCII) encoded one
+
+:return: (object) File
+:since:  v0.1.01
+		"""
+
+		_return = None
+
+		if (not is_binary):
+		#
+			try: _return = open(file_pathname_os, file_mode, encoding = "utf-8")
+			except TypeError: pass
+		#
+
+		if (_return == None): _return = open(file_pathname_os, file_mode)
+		return _return
+	#
+
 	def read(self, _bytes = 0, timeout = -1):
 	#
 		"""
 Reads from the current file session.
 
 :param _bytes: How many bytes to read from the current position (0 means
-                  until EOF)
+               until EOF)
 :param timeout: Timeout to use (defaults to construction time value)
 
 :return: (mixed) Data; False on error
@@ -467,6 +574,18 @@ Sets the EventHandler.
 		self.event_handler = event_handler
 	#
 
+	def tell(self):
+	#
+		"""
+Returns the current offset.
+
+:return: (int) Offset; False on error
+:since:  v0.1.02
+		"""
+
+		return (False if (self.resource == None) else self.resource.tell())
+	#
+
 	def truncate(self, new_size):
 	#
 		"""
@@ -487,102 +606,6 @@ Truncates the active file session.
 			return True
 		#
 		else: return False
-	#
-
-	def open(self, file_pathname, readonly = False, file_mode = "a+b"):
-	#
-		"""
-Opens a file session.
-
-:param file_pathname: Path to the requested file
-:param readonly: Open file in readonly mode
-:param file_mode: File mode to use
-
-:return: (bool) True on success
-:since:  v0.1.00
-		"""
-
-		# global: _PY_BYTES_TYPE, _PY_STR, _PY_UNICODE_TYPE
-
-		if (str != _PY_UNICODE_TYPE and type(file_pathname) == _PY_UNICODE_TYPE): file_pathname = _PY_STR(file_pathname, "utf-8")
-
-		if (self.event_handler != None): self.event_handler.debug("#echo(__FILEPATH__)# -file.open({0}, readonly, {1})- (#echo(__LINE__)#)".format(file_pathname, file_mode))
-
-		if (self.resource == None):
-		#
-			exists = False
-			file_pathname_os = path.normpath(file_pathname)
-			_return = True
-
-			self.readonly = (True if (readonly) else False)
-
-			if (path.exists(file_pathname_os)): exists = True
-			elif (not self.readonly):
-			#
-				if (self.umask != None): os.umask(int(self.umask, 8))
-			#
-			else: _return = False
-
-			is_binary = (True if ("b" in file_mode and bytes == _PY_BYTES_TYPE) else False)
-
-			if (_return):
-			#
-				try: self.resource = self._open(file_pathname, file_mode, is_binary)
-				except IOError: pass
-			#
-			elif (self.event_handler != None): self.event_handler.warning("#echo(__FILEPATH__)# -file.open()- reporting: Failed opening {0} - file does not exist".format(file_pathname))
-
-			if (self.resource == None):
-			#
-				if ((not exists) and (not self.readonly)):
-				#
-					try: os.unlink(file_pathname_os)
-					except IOError: pass
-				#
-			#
-			else:
-			#
-				self.binary = is_binary
-
-				if (self.chmod != None and (not exists)): os.chmod(file_pathname_os, self.chmod)
-				self.resource_file_pathname = file_pathname
-
-				if (self.lock("r")): self.resource_file_size = path.getsize(file_pathname_os)
-				else:
-				#
-					self.close(not exists)
-					self.resource = None
-				#
-			#
-		#
-		else: _return = False
-
-		return _return
-	#
-
-	def _open(self, file_pathname_os, file_mode, is_binary):
-	#
-		"""
-Opens a file resource and sets the encoding to UTF-8.
-
-:param file_pathname_os: Path to the requested file
-:param file_mode: File mode to use
-:param is_binary: False if the file is an UTF-8 (or ASCII) encoded one
-
-:return: (object) File
-:since:  v0.1.01
-		"""
-
-		_return = None
-
-		if (not is_binary):
-		#
-			try: _return = open(file_pathname_os, file_mode, encoding = "utf-8")
-			except TypeError: pass
-		#
-
-		if (_return == None): _return = open(file_pathname_os, file_mode)
-		return _return
 	#
 
 	def write(self, data, timeout = -1):
