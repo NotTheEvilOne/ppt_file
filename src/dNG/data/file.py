@@ -162,7 +162,7 @@ Closes an active file handle.
 
 		# global: _use_file_locking
 
-		if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.close(delete_empty)- (#echo(__LINE__)#)")
+		if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.close()- (#echo(__LINE__)#)")
 		_return = False
 
 		if (self.resource is not None):
@@ -335,7 +335,7 @@ Runs flock or an alternative locking mechanism.
 		# global: _PY_STR, _PY_UNICODE_TYPE, _use_file_locking
 		# pylint: disable=broad-except
 
-		if (str != _PY_UNICODE_TYPE and type(file_path_name) == _PY_UNICODE_TYPE): file_path_name = _PY_STR(file_path_name, "utf-8")
+		if (str is not _PY_UNICODE_TYPE and type(file_path_name) is _PY_UNICODE_TYPE): file_path_name = _PY_STR(file_path_name, "utf-8")
 
 		_return = False
 
@@ -416,9 +416,9 @@ Opens a file session.
 
 		# global: _PY_BYTES_TYPE, _PY_STR, _PY_UNICODE_TYPE
 
-		if (str != _PY_UNICODE_TYPE and type(file_path_name) == _PY_UNICODE_TYPE): file_path_name = _PY_STR(file_path_name, "utf-8")
+		if (str is not _PY_UNICODE_TYPE and type(file_path_name) is _PY_UNICODE_TYPE): file_path_name = _PY_STR(file_path_name, "utf-8")
 
-		if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.open({0}, readonly, {1})- (#echo(__LINE__)#)".format(file_path_name, file_mode))
+		if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.open({0}, {1})- (#echo(__LINE__)#)".format(file_path_name, file_mode))
 
 		if (self.resource is None):
 		#
@@ -622,13 +622,13 @@ Write content to the active file session.
 
 		# global: _PY_BYTES, _PY_BYTES_TYPE
 
-		if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.write(data, {0:d})- (#echo(__LINE__)#)".format(timeout))
+		if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.write({0:d})- (#echo(__LINE__)#)".format(timeout))
 
 		_return = False
 
 		if (self.lock("w")):
 		#
-			if (self.binary and type(data) != _PY_BYTES_TYPE): data = _PY_BYTES(data, "raw_unicode_escape")
+			if (self.binary and type(data) is not _PY_BYTES_TYPE): data = _PY_BYTES(data, "raw_unicode_escape")
 			bytes_unwritten = len(data)
 			bytes_written = self.resource.tell()
 
