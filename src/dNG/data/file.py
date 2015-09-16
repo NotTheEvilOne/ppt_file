@@ -145,19 +145,18 @@ Destructor __del__(File)
 		"""
 
 		self.close()
-		self.resource = None
 	#
 
 	def close(self, delete_empty = True):
 	#
 		"""
-Closes an active file handle.
+python.org: Flush and close this stream.
 
 :param delete_empty: If the file handle is valid, the file is empty and
                      this parameter is true then the file will be deleted.
 
 :return: (bool) True on success
-:since: v0.1.00
+:since:  v0.1.00
 		"""
 
 		# global: _use_file_locking
@@ -169,7 +168,7 @@ Closes an active file handle.
 		#
 			file_position = self.tell()
 
-			if ((not self.readonly) and delete_empty and (not file_position)):
+			if ((not self.readonly) and delete_empty and file_position < 1):
 			#
 				self.read(1)
 				file_position = self.tell()
@@ -189,7 +188,7 @@ Closes an active file handle.
 				#
 			#
 
-			if ((not self.readonly) and delete_empty and file_position < 0):
+			if ((not self.readonly) and delete_empty and file_position < 1):
 			#
 				file_path_name_os = path.normpath(self.resource_file_path_name)
 				_return = True
@@ -210,7 +209,7 @@ Closes an active file handle.
 	def flush(self):
 	#
 		"""
-Flushes all cached data to the file.
+python.org: Flush the write buffers of the stream if applicable.
 
 :return: (bool) True on success
 :since:  v0.1.00
@@ -273,7 +272,7 @@ Changes file locking if needed.
 :param lock_mode: The requested file locking mode ("r" or "w").
 
 :return: (bool) True on success
-:since: v0.1.00
+:since:  v0.1.00
 		"""
 
 		if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.lock({0})- (#echo(__LINE__)#)".format(lock_mode))
@@ -498,41 +497,41 @@ Opens a file resource and sets the encoding to UTF-8.
 		return _return
 	#
 
-	def read(self, _bytes = 0, timeout = -1):
+	def read(self, n = 0, timeout = -1):
 	#
 		"""
-Reads from the current file session.
+python.org: Read up to n bytes from the object and return them.
 
-:param _bytes: How many bytes to read from the current position (0 means
-               until EOF)
+:param n: How many bytes to read from the current position (0 means until
+          EOF)
 :param timeout: Timeout to use (defaults to construction time value)
 
-:return: (mixed) Data; False on error
+:return: (bytes) Data; None if EOF
 :since:  v0.1.00
 		"""
 
 		# global: _PY_BYTES_TYPE
 
-		if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.read({0:d}, {1:d})- (#echo(__LINE__)#)".format(_bytes, timeout))
+		if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.read({0:d}, {1:d})- (#echo(__LINE__)#)".format(n, timeout))
 
-		_return = False
+		_return = None
 
 		if (self.lock("r")):
 		#
-			bytes_unread = _bytes
+			bytes_unread = n
 			timeout_time = time.time()
 
 			_return = (_PY_BYTES_TYPE() if (self.binary) else "")
 			timeout_time += (self.timeout_retries if (timeout < 0) else timeout)
 
-			while ((bytes_unread > 0 or _bytes == 0) and (not self.is_eof()) and time.time() < timeout_time):
+			while ((bytes_unread > 0 or n == 0) and (not self.is_eof()) and time.time() < timeout_time):
 			#
-				part_size = (4096 if (bytes_unread > 4096 or _bytes == 0) else bytes_unread)
+				part_size = (4096 if (bytes_unread > 4096 or n == 0) else bytes_unread)
 				_return += self.resource.read(part_size)
-				if (_bytes > 0): bytes_unread -= part_size
+				if (n > 0): bytes_unread -= part_size
 			#
 
-			if ((bytes_unread > 0 or (_bytes == 0 and self.is_eof()))
+			if ((bytes_unread > 0 or (n == 0 and self.is_eof()))
 			    and self.event_handler is not None
 			   ): self.event_handler.error("#echo(__FILEPATH__)# -file.read()- reporting: Timeout occured before EOF")
 		#
@@ -543,22 +542,16 @@ Reads from the current file session.
 	def seek(self, offset):
 	#
 		"""
-Seek to a given offset.
+python.org: Change the stream position to the given byte offset.
 
 :param offset: Seek to the given offset
 
-:return: (bool) True on success
+:return: (int) Return the new absolute position.
 :since:  v0.1.00
 		"""
 
 		if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.seek({0:d})- (#echo(__LINE__)#)".format(offset))
-
-		if (self.resource is None): return False
-		else:
-		#
-			self.resource.seek(offset)
-			return True
-		#
+		return (-1 if (self.resource is None) else self.resource.seek(offset))
 	#
 
 	def set_event_handler(self, event_handler = None):
@@ -577,23 +570,23 @@ Sets the EventHandler.
 	def tell(self):
 	#
 		"""
-Returns the current offset.
+python.org: Return the current stream position as an opaque number.
 
-:return: (int) Offset; False on error
+:return: (int) Stream position
 :since:  v0.1.02
 		"""
 
-		return (False if (self.resource is None) else self.resource.tell())
+		return (-1 if (self.resource is None) else self.resource.tell())
 	#
 
 	def truncate(self, new_size):
 	#
 		"""
-Truncates the active file session.
+python.org: Resize the stream to the given size in bytes.
 
 :param new_size: Cut file at the given byte position
 
-:return: (bool) True on success
+:return: (int) New file size
 :since:  v0.1.00
 		"""
 
@@ -601,22 +594,24 @@ Truncates the active file session.
 
 		if (self.lock("w")):
 		#
-			self.resource.truncate(new_size)
+			_return = self.resource.truncate(new_size)
 			self.resource_file_size = new_size
-			return True
 		#
-		else: return False
+		else: raise IOError("Failed to truncate the file")
+
+		return _return
 	#
 
-	def write(self, data, timeout = -1):
+	def write(self, b, timeout = -1):
 	#
 		"""
-Write content to the active file session.
+python.org: Write the given bytes or bytearray object, b, to the underlying
+raw stream and return the number of bytes written.
 
-:param data: (Over)write file with the data content at the current position
+:param b: (Over)write file with the given data at the current position
 :param timeout: Timeout to use (defaults to construction time value)
 
-:return: (bool) True on success
+:return: (int) Number of bytes written
 :since:  v0.1.00
 		"""
 
@@ -624,43 +619,31 @@ Write content to the active file session.
 
 		if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.write({0:d})- (#echo(__LINE__)#)".format(timeout))
 
-		_return = False
+		_return = 0
 
 		if (self.lock("w")):
 		#
-			if (self.binary and type(data) is not _PY_BYTES_TYPE): data = _PY_BYTES(data, "raw_unicode_escape")
-			bytes_unwritten = len(data)
+			if (self.binary and type(b) is not _PY_BYTES_TYPE): b = _PY_BYTES(b, "raw_unicode_escape")
+			bytes_unwritten = len(b)
 			bytes_written = self.resource.tell()
 
 			if ((bytes_written + bytes_unwritten) <= self.resource_file_size): new_size = 0
 			else: new_size = (bytes_written + bytes_unwritten)
 
-			bytes_written = 0
 			timeout_time = time.time()
-			_return = True
-
 			timeout_time += (self.timeout_retries if (timeout < 0) else timeout)
 
 			while (bytes_unwritten > 0 and time.time() < timeout_time):
 			#
 				part_size = (4096 if (bytes_unwritten > 4096) else bytes_unwritten)
 
-				try:
-				#
-					self.resource.write(data[bytes_written:(bytes_written + part_size)])
-					bytes_unwritten -= part_size
-					bytes_written += part_size
-				#
-				except IOError:
-				#
-					_return = False
-					break
-				#
+				self.resource.write(b[_return:(_return + part_size)])
+				bytes_unwritten -= part_size
+				_return += part_size
 			#
 
 			if (bytes_unwritten > 0):
 			#
-				_return = False
 				self.resource_file_size = path.getsize(path.normpath(self.resource_file_path_name))
 				if (self.event_handler is not None): self.event_handler.error("#echo(__FILEPATH__)# -file.write()- reporting: Timeout occured before EOF")
 			#
