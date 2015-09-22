@@ -28,9 +28,9 @@ import time
 try:
 #
 	import fcntl
-	_use_file_locking = False
+	_USE_FILE_LOCKING = False
 #
-except ImportError: _use_file_locking = True
+except ImportError: _USE_FILE_LOCKING = True
 
 try:
 #
@@ -147,7 +147,7 @@ Destructor __del__(File)
 		self.close()
 	#
 
-	def close(self, delete_empty = True):
+	def close(self, delete_empty = False):
 	#
 		"""
 python.org: Flush and close this stream.
@@ -159,7 +159,7 @@ python.org: Flush and close this stream.
 :since:  v0.1.00
 		"""
 
-		# global: _use_file_locking
+		# global: _USE_FILE_LOCKING
 
 		if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.close()- (#echo(__LINE__)#)")
 		_return = False
@@ -177,7 +177,7 @@ python.org: Flush and close this stream.
 			self.resource.close()
 			_return = True
 
-			if (self.resource_lock == "w" and _use_file_locking):
+			if (self.resource_lock == "w" and _USE_FILE_LOCKING):
 			#
 				lock_path_name_os = path.normpath("{0}.lock".format(self.resource_file_path_name))
 
@@ -325,13 +325,13 @@ Runs flock or an alternative locking mechanism.
 
 :param lock_mode: The requested file locking mode ("r" or "w").
 :param file_path_name: Alternative path to the locking file (used for
-                      _use_file_locking)
+                      _USE_FILE_LOCKING)
 
 :return: (bool) True on success
 :since:  v0.1.00
 		"""
 
-		# global: _PY_STR, _PY_UNICODE_TYPE, _use_file_locking
+		# global: _PY_STR, _PY_UNICODE_TYPE, _USE_FILE_LOCKING
 		# pylint: disable=broad-except
 
 		if (str is not _PY_UNICODE_TYPE and type(file_path_name) is _PY_UNICODE_TYPE): file_path_name = _PY_STR(file_path_name, "utf-8")
@@ -344,7 +344,7 @@ Runs flock or an alternative locking mechanism.
 		if (len(file_path_name) > 0 and self.resource is not None):
 		#
 			if (lock_mode == "w" and self.readonly): _return = False
-			elif (_use_file_locking):
+			elif (_USE_FILE_LOCKING):
 			#
 				is_locked = path.exists(lock_path_name_os)
 
