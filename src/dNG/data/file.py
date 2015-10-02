@@ -240,6 +240,18 @@ Returns the file pointer.
 		return (False if (self.resource is None) else self.resource)
 	#
 
+	def get_size(self):
+	#
+		"""
+Returns the size in bytes.
+
+:return: (int) Size in bytes
+:since:  v0.1.02
+		"""
+
+		return (-1 if (self.resource is None) else self.resource_file_size)
+	#
+
 	def is_eof(self):
 	#
 		"""
