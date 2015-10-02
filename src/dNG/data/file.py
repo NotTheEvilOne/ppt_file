@@ -538,7 +538,7 @@ python.org: Read up to n bytes from the object and return them.
 
 			while ((bytes_unread > 0 or n == 0) and (not self.is_eof()) and time.time() < timeout_time):
 			#
-				part_size = (4096 if (bytes_unread > 4096 or n == 0) else bytes_unread)
+				part_size = (16384 if (bytes_unread > 16384 or n == 0) else bytes_unread)
 				_return += self.resource.read(part_size)
 				if (n > 0): bytes_unread -= part_size
 			#
@@ -647,7 +647,7 @@ raw stream and return the number of bytes written.
 
 			while (bytes_unwritten > 0 and time.time() < timeout_time):
 			#
-				part_size = (4096 if (bytes_unwritten > 4096) else bytes_unwritten)
+				part_size = (16384 if (bytes_unwritten > 16384) else bytes_unwritten)
 
 				self.resource.write(b[_return:(_return + part_size)])
 				bytes_unwritten -= part_size
