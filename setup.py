@@ -48,12 +48,12 @@ with TemporaryDirectory(dir = ".") as build_directory:
 	      version = get_version(),
 	      description = "Working with a file abstraction layer",
 	      long_description = """The file.py abstraction layer provides an interface similar to FileIO with support for read, lock and write timeouts.""",
-	      author = "direct Netware Group",
+	      author = "direct Netware Group et al.",
 	      author_email = "web@direct-netware.de",
 	      license = "MPL2",
 	      url = "https://www.direct-netware.de/redirect?py;file",
 
-	      platforms=[ "any" ],
+	      platforms = [ "any" ],
 
 	      package_dir = { "": _build_path },
 	      packages = [ "dNG" ],
