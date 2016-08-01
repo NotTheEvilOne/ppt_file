@@ -52,7 +52,7 @@ class File(object):
 	"""
 Get file objects to work with files easily.
 
-:author:    direct Netware Group
+:author:    direct Netware Group et al.
 :copyright: direct Netware Group - All rights reserved
 :package:   file.py
 :since:     v0.1.00
@@ -221,8 +221,11 @@ python.org: Flush the write buffers of the stream if applicable.
 		#
 			_return = True
 
-			self.resource.flush()
-			os.fsync(self.resource.fileno())
+			if (not self.readonly):
+			#
+				self.resource.flush()
+				os.fsync(self.resource.fileno())
+			#
 		#
 
 		return _return
@@ -295,36 +298,33 @@ Changes file locking if needed.
 		#
 			if (self.event_handler is not None): self.event_handler.warning("#echo(__FILEPATH__)# -file.lock()- reporting: File resource invalid")
 		#
+		elif (lock_mode == "w" and self.readonly):
+		#
+			if (self.event_handler is not None): self.event_handler.error("#echo(__FILEPATH__)# -file.lock()- reporting: File resource is in readonly mode")
+		#
+		elif (lock_mode == self.resource_lock): _return = True
 		else:
 		#
-			if (lock_mode == "w" and self.readonly):
-			#
-				if (self.event_handler is not None): self.event_handler.error("#echo(__FILEPATH__)# -file.lock()- reporting: File resource is in readonly mode")
-			#
-			elif (lock_mode == self.resource_lock): _return = True
-			else:
-			#
-				timeout_retries = self.timeout_retries
+			timeout_retries = self.timeout_retries
 
-				while (timeout_retries > 0):
+			while (timeout_retries > 0):
+			#
+				if (self._locking(lock_mode)):
 				#
-					if (self._locking(lock_mode)):
-					#
-						self.resource_lock = ("w" if (lock_mode == "w") else "r")
-						_return = True
-						timeout_retries = -1
+					self.resource_lock = ("w" if (lock_mode == "w") else "r")
+					_return = True
+					timeout_retries = -1
 
-						break
-					#
-					else:
-					#
-						timeout_retries -= 1
-						time.sleep(1)
-					#
+					break
 				#
-
-				if (timeout_retries > -1 and self.event_handler is not None): self.event_handler.error("#echo(__FILEPATH__)# -file.lock()- reporting: File lock change failed")
+				else:
+				#
+					timeout_retries -= 1
+					time.sleep(1)
+				#
 			#
+
+			if (timeout_retries > -1 and self.event_handler is not None): self.event_handler.error("#echo(__FILEPATH__)# -file.lock()- reporting: File lock change failed")
 		#
 
 		return _return
@@ -470,7 +470,7 @@ Opens a file session.
 				if (self.chmod is not None and (not exists)): os.chmod(file_path_name_os, self.chmod)
 				self.resource_file_path_name = file_path_name
 
-				if (self.lock("r")): self.resource_file_size = path.getsize(file_path_name_os)
+				if (self.lock("r")): self.resource_file_size = os.stat(file_path_name_os).st_size
 				else:
 				#
 					_return = False
@@ -656,7 +656,7 @@ raw stream and return the number of bytes written.
 
 			if (bytes_unwritten > 0):
 			#
-				self.resource_file_size = path.getsize(path.normpath(self.resource_file_path_name))
+				self.resource_file_size = os.stat(path.normpath(self.resource_file_path_name)).st_size
 				if (self.event_handler is not None): self.event_handler.error("#echo(__FILEPATH__)# -file.write()- reporting: Timeout occured before EOF")
 			#
 			elif (new_size > 0): self.resource_file_size = new_size

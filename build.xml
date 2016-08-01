@@ -24,4 +24,13 @@ https://www.direct-netware.de/redirect?licenses;mpl2
 			<arg value="--strip_prefix=${src.basedir}/src/" />
 		</exec>
 	</target>
+
+	<target name="compile.unittest" description="Compile unittest.py ${ant.project.name}">
+		<exec executable="python" dir="${src.basedir}">
+			<arg file="${pyBuilder.filePathName}" />
+			<arg value="--filetype=${pyBuilder.fileTypes}" />
+			<arg value="--include=${src.basedir}/unittest/" />
+			<arg value="--strip_prefix=${src.basedir}/" />
+		</exec>
+	</target>
 </project>
