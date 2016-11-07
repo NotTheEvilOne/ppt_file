@@ -13,24 +13,24 @@ obtain one at http://mozilla.org/MPL/2.0/.
 https://www.direct-netware.de/redirect?licenses;mpl2
 // -->
 <project name="file.py" default="compile.src">
-	<dirname property="src.basedir" file="${ant.file}" />
-	<property file="${src.basedir}/_extras/build.properties" />
+    <dirname property="src.basedir" file="${ant.file}" />
+    <property file="${src.basedir}/_extras/build.properties" />
 
-	<target name="compile.src" description="Compile src.py ${ant.project.name}">
-		<exec executable="python" dir="${src.basedir}">
-			<arg file="${pyBuilder.filePathName}" />
-			<arg value="--filetype=${pyBuilder.fileTypes}" />
-			<arg value="--include=${src.basedir}/src/" />
-			<arg value="--strip_prefix=${src.basedir}/src/" />
-		</exec>
-	</target>
+    <target name="compile.src" description="Compile src.py ${ant.project.name}">
+        <exec executable="python" dir="${src.basedir}">
+            <arg file="${pyBuilder.filePathName}" />
+            <arg value="--filetype=${pyBuilder.fileTypes}" />
+            <arg value="--include=${src.basedir}/src/" />
+            <arg value="--strip_prefix=${src.basedir}/" />
+        </exec>
+    </target>
 
-	<target name="compile.unittest" description="Compile unittest.py ${ant.project.name}">
-		<exec executable="python" dir="${src.basedir}">
-			<arg file="${pyBuilder.filePathName}" />
-			<arg value="--filetype=${pyBuilder.fileTypes}" />
-			<arg value="--include=${src.basedir}/unittest/" />
-			<arg value="--strip_prefix=${src.basedir}/" />
-		</exec>
-	</target>
+    <target name="compile.unittest" description="Compile unittest.py ${ant.project.name}">
+        <exec executable="python" dir="${src.basedir}">
+            <arg file="${pyBuilder.filePathName}" />
+            <arg value="--filetype=${pyBuilder.fileTypes}" />
+            <arg value="--include=${src.basedir}/unittest/" />
+            <arg value="--strip_prefix=${src.basedir}/" />
+        </exec>
+    </target>
 </project>
