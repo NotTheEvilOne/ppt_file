@@ -82,19 +82,19 @@ The EventHandler is called whenever debug messages should be logged or errors
         """
 True if file is opened read-only
         """
-        self.resource = None
+        self._handle = None
         """
-Resource to the opened file
+Handle to the opened file
         """
-        self.resource_file_path_name = ""
+        self.file_path_name = ""
         """
-Filename for the resource pointer
+File path and name for the file handle
         """
-        self.resource_file_size = -1
+        self.file_size = -1
         """
-File size of the resource pointer
+File size of the file handle
         """
-        self.resource_lock = "r"
+        self._handle_lock = "r"
         """
 Current locking mode
         """
@@ -153,7 +153,7 @@ python.org: Flush and close this stream.
         if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.close()- (#echo(__LINE__)#)")
         _return = False
 
-        if (self.resource is not None):
+        if (self._handle is not None):
             file_position = self.tell()
 
             if ((not self.readonly) and delete_empty and file_position < 1):
@@ -161,11 +161,11 @@ python.org: Flush and close this stream.
                 file_position = self.tell()
             #
 
-            self.resource.close()
+            self._handle.close()
             _return = True
 
-            if (self.resource_lock == "w" and _USE_FILE_LOCKING):
-                lock_path_name_os = path.normpath("{0}.lock".format(self.resource_file_path_name))
+            if (self._handle_lock == "w" and _USE_FILE_LOCKING):
+                lock_path_name_os = path.normpath("{0}.lock".format(self.file_path_name))
 
                 if (path.exists(lock_path_name_os)):
                     try: os.unlink(lock_path_name_os)
@@ -174,17 +174,18 @@ python.org: Flush and close this stream.
             #
 
             if ((not self.readonly) and delete_empty and file_position < 1):
-                file_path_name_os = path.normpath(self.resource_file_path_name)
+                file_path_name_os = path.normpath(self.file_path_name)
                 _return = True
 
                 try: os.unlink(file_path_name_os)
                 except IOError: _return = False
             #
 
+            self._handle = None
+
+            self.file_path_name = ""
+            self.file_size = -1
             self.readonly = False
-            self.resource = None
-            self.resource_file_path_name = ""
-            self.resource_file_size = -1
         #
 
         return _return
@@ -200,12 +201,12 @@ python.org: Flush the write buffers of the stream if applicable.
 
         _return = False
 
-        if (self.resource is not None):
+        if (self._handle is not None):
             _return = True
 
             if (not self.readonly):
-                self.resource.flush()
-                os.fsync(self.resource.fileno())
+                self._handle.flush()
+                os.fsync(self._handle.fileno())
             #
         #
 
@@ -220,7 +221,7 @@ Returns the file pointer.
 :since:  v0.1.00
         """
 
-        return (False if (self.resource is None) else self.resource)
+        return (False if (self._handle is None) else self._handle)
     #
 
     def get_size(self):
@@ -231,7 +232,7 @@ Returns the size in bytes.
 :since:  v0.1.02
         """
 
-        return (-1 if (self.resource is None) else self.resource_file_size)
+        return (-1 if (self._handle is None) else self.file_size)
     #
 
     def is_eof(self):
@@ -242,18 +243,18 @@ Checks if the pointer is at EOF.
 :since:  v0.1.00
         """
 
-        return (True if (self.resource is None or self.resource.tell() == self.resource_file_size) else False)
+        return (True if (self._handle is None or self._handle.tell() == self.file_size) else False)
     #
 
-    def is_resource_valid(self):
+    def is_valid(self):
         """
-Returns true if the file resource is available.
+Returns true if the file handle is available.
 
 :return: (bool) True on success
-:since:  v0.1.00
+:since:  v0.2.00
         """
 
-        return (self.resource is not None)
+        return (self._handle is not None)
     #
 
     def lock(self, lock_mode):
@@ -270,17 +271,17 @@ Changes file locking if needed.
 
         _return = False
 
-        if (self.resource is None):
-            if (self.event_handler is not None): self.event_handler.warning("#echo(__FILEPATH__)# -file.lock()- reporting: File resource invalid")
+        if (self._handle is None):
+            if (self.event_handler is not None): self.event_handler.warning("#echo(__FILEPATH__)# -file.lock()- reporting: File handle invalid")
         elif (lock_mode == "w" and self.readonly):
-            if (self.event_handler is not None): self.event_handler.error("#echo(__FILEPATH__)# -file.lock()- reporting: File resource is in readonly mode")
-        elif (lock_mode == self.resource_lock): _return = True
+            if (self.event_handler is not None): self.event_handler.error("#echo(__FILEPATH__)# -file.lock()- reporting: File handle is in readonly mode")
+        elif (lock_mode == self._handle_lock): _return = True
         else:
             timeout_retries = self.timeout_retries
 
             while (timeout_retries > 0):
                 if (self._locking(lock_mode)):
-                    self.resource_lock = ("w" if (lock_mode == "w") else "r")
+                    self._handle_lock = ("w" if (lock_mode == "w") else "r")
                     _return = True
                     timeout_retries = -1
 
@@ -316,10 +317,10 @@ Runs flock or an alternative locking mechanism.
 
         _return = False
 
-        if (len(file_path_name) < 1): file_path_name = self.resource_file_path_name
+        if (len(file_path_name) < 1): file_path_name = self.file_path_name
         lock_path_name_os = path.normpath("{0}.lock".format(file_path_name))
 
-        if (len(file_path_name) > 0 and self.resource is not None):
+        if (len(file_path_name) > 0 and self._handle is not None):
             if (lock_mode == "w" and self.readonly): _return = False
             elif (_USE_FILE_LOCKING):
                 is_locked = path.exists(lock_path_name_os)
@@ -334,14 +335,14 @@ Runs flock or an alternative locking mechanism.
                 #
 
                 if (lock_mode == "w"):
-                    if (is_locked and self.resource_lock == "w"): _return = True
+                    if (is_locked and self._handle_lock == "w"): _return = True
                     elif (not is_locked):
                         try:
                             open(lock_path_name_os, "w").close()
                             _return = True
                         except IOError: pass
                     #
-                elif (is_locked and self.resource_lock == "w"):
+                elif (is_locked and self._handle_lock == "w"):
                     try:
                         os.unlink(lock_path_name_os)
                         _return = True
@@ -351,7 +352,7 @@ Runs flock or an alternative locking mechanism.
                 operation = (fcntl.LOCK_EX if (lock_mode == "w") else fcntl.LOCK_SH)
 
                 try:
-                    fcntl.flock(self.resource, operation)
+                    fcntl.flock(self._handle, operation)
                     _return = True
                 except Exception: pass
             #
@@ -378,7 +379,7 @@ Opens a file session.
 
         if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.open({0}, {1})- (#echo(__LINE__)#)".format(file_path_name, file_mode))
 
-        if (self.resource is None):
+        if (self._handle is None):
             exists = False
             file_path_name_os = path.normpath(file_path_name)
             _return = True
@@ -393,11 +394,11 @@ Opens a file session.
             is_binary = (True if ("b" in file_mode and bytes == _PY_BYTES_TYPE) else False)
 
             if (_return):
-                try: self.resource = self._open(file_path_name, file_mode, is_binary)
+                try: self._handle = self._open(file_path_name, file_mode, is_binary)
                 except IOError: _return = False
             elif (self.event_handler is not None): self.event_handler.warning("#echo(__FILEPATH__)# -file.open()- reporting: Failed opening {0} - file does not exist".format(file_path_name))
 
-            if (self.resource is None):
+            if (self._handle is None):
                 if ((not exists) and (not self.readonly)):
                     try: os.unlink(file_path_name_os)
                     except IOError: pass
@@ -406,13 +407,13 @@ Opens a file session.
                 self.binary = is_binary
 
                 if (self.chmod is not None and (not exists)): os.chmod(file_path_name_os, self.chmod)
-                self.resource_file_path_name = file_path_name
+                self.file_path_name = file_path_name
 
-                if (self.lock("r")): self.resource_file_size = os.stat(file_path_name_os).st_size
+                if (self.lock("r")): self.file_size = os.stat(file_path_name_os).st_size
                 else:
                     _return = False
                     self.close(not exists)
-                    self.resource = None
+                    self._handle = None
                 #
             #
         else: _return = False
@@ -422,7 +423,7 @@ Opens a file session.
 
     def _open(self, file_path_name_os, file_mode, is_binary):
         """
-Opens a file resource and sets the encoding to UTF-8.
+Opens a file handle and sets the encoding to UTF-8.
 
 :param file_path_name_os: Path to the requested file
 :param file_mode: File mode to use
@@ -470,7 +471,7 @@ python.org: Read up to n bytes from the object and return them.
 
             while ((bytes_unread > 0 or n == 0) and (not self.is_eof()) and time.time() < timeout_time):
                 part_size = (16384 if (bytes_unread > 16384 or n == 0) else bytes_unread)
-                _return += self.resource.read(part_size)
+                _return += self._handle.read(part_size)
                 if (n > 0): bytes_unread -= part_size
             #
 
@@ -493,7 +494,7 @@ python.org: Change the stream position to the given byte offset.
         """
 
         if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.seek({0:d})- (#echo(__LINE__)#)".format(offset))
-        return (-1 if (self.resource is None) else self.resource.seek(offset))
+        return (-1 if (self._handle is None) else self._handle.seek(offset))
     #
 
     def set_event_handler(self, event_handler = None):
@@ -516,7 +517,7 @@ python.org: Return the current stream position as an opaque number.
 :since:  v0.1.02
         """
 
-        return (-1 if (self.resource is None) else self.resource.tell())
+        return (-1 if (self._handle is None) else self._handle.tell())
     #
 
     def truncate(self, new_size):
@@ -532,8 +533,8 @@ python.org: Resize the stream to the given size in bytes.
         if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.truncate({0:d})- (#echo(__LINE__)#)".format(new_size))
 
         if (self.lock("w")):
-            _return = self.resource.truncate(new_size)
-            self.resource_file_size = new_size
+            _return = self._handle.truncate(new_size)
+            self.file_size = new_size
         else: raise IOError("Failed to truncate the file")
 
         return _return
@@ -560,9 +561,9 @@ raw stream and return the number of bytes written.
         if (self.lock("w")):
             if (self.binary and type(b) is not _PY_BYTES_TYPE): b = _PY_BYTES(b, "raw_unicode_escape")
             bytes_unwritten = len(b)
-            bytes_written = self.resource.tell()
+            bytes_written = self._handle.tell()
 
-            if ((bytes_written + bytes_unwritten) <= self.resource_file_size): new_size = 0
+            if ((bytes_written + bytes_unwritten) <= self.file_size): new_size = 0
             else: new_size = (bytes_written + bytes_unwritten)
 
             timeout_time = time.time()
@@ -571,15 +572,15 @@ raw stream and return the number of bytes written.
             while (bytes_unwritten > 0 and time.time() < timeout_time):
                 part_size = (16384 if (bytes_unwritten > 16384) else bytes_unwritten)
 
-                self.resource.write(b[_return:(_return + part_size)])
+                self._handle.write(b[_return:(_return + part_size)])
                 bytes_unwritten -= part_size
                 _return += part_size
             #
 
             if (bytes_unwritten > 0):
-                self.resource_file_size = os.stat(path.normpath(self.resource_file_path_name)).st_size
+                self.file_size = os.stat(path.normpath(self.file_path_name)).st_size
                 if (self.event_handler is not None): self.event_handler.error("#echo(__FILEPATH__)# -file.write()- reporting: Timeout occured before EOF")
-            elif (new_size > 0): self.resource_file_size = new_size
+            elif (new_size > 0): self.file_size = new_size
         #
 
         return _return
