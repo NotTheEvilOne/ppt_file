@@ -48,7 +48,7 @@ Get file objects to work with files easily.
 :author:    direct Netware Group et al.
 :copyright: direct Netware Group - All rights reserved
 :package:   file.py
-:since:     v0.1.00
+:since:     v0.1.0
 :license:   https://www.direct-netware.de/redirect?licenses;mpl2
             Mozilla Public License, v. 2.0
     """
@@ -62,7 +62,7 @@ Constructor __init__(File)
 :param timeout_retries: Retries before timing out
 :param event_handler: EventHandler to use
 
-:since: v0.1.00
+:since: v0.1.0
         """
 
         self.binary = False
@@ -131,7 +131,7 @@ umask to set before creating a new file
         """
 Destructor __del__(File)
 
-:since: v0.1.00
+:since: v0.1.0
         """
 
         self.close()
@@ -145,7 +145,7 @@ python.org: Flush and close this stream.
                      this parameter is true then the file will be deleted.
 
 :return: (bool) True on success
-:since:  v0.1.00
+:since:  v0.1.0
         """
 
         # global: _USE_FILE_LOCKING
@@ -196,7 +196,7 @@ python.org: Flush and close this stream.
 python.org: Flush the write buffers of the stream if applicable.
 
 :return: (bool) True on success
-:since:  v0.1.00
+:since:  v0.1.0
         """
 
         _return = False
@@ -218,7 +218,7 @@ python.org: Flush the write buffers of the stream if applicable.
 Returns the file pointer.
 
 :return: (mixed) File handle; False on error
-:since:  v0.1.00
+:since:  v0.1.0
         """
 
         return (False if (self._handle is None) else self._handle)
@@ -229,7 +229,7 @@ Returns the file pointer.
 Returns the size in bytes.
 
 :return: (int) Size in bytes
-:since:  v0.1.02
+:since:  v0.1.2
         """
 
         return (-1 if (self._handle is None) else self.file_size)
@@ -240,7 +240,7 @@ Returns the size in bytes.
 Checks if the pointer is at EOF.
 
 :return: (bool) True on success
-:since:  v0.1.00
+:since:  v0.1.0
         """
 
         return (True if (self._handle is None or self._handle.tell() == self.file_size) else False)
@@ -251,7 +251,7 @@ Checks if the pointer is at EOF.
 Returns true if the file handle is available.
 
 :return: (bool) True on success
-:since:  v0.2.00
+:since:  v0.2.0
         """
 
         return (self._handle is not None)
@@ -264,7 +264,7 @@ Changes file locking if needed.
 :param lock_mode: The requested file locking mode ("r" or "w").
 
 :return: (bool) True on success
-:since:  v0.1.00
+:since:  v0.1.0
         """
 
         if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.lock({0})- (#echo(__LINE__)#)".format(lock_mode))
@@ -307,7 +307,7 @@ Runs flock or an alternative locking mechanism.
                       _USE_FILE_LOCKING)
 
 :return: (bool) True on success
-:since:  v0.1.00
+:since:  v0.1.0
         """
 
         # global: _PY_STR, _PY_UNICODE_TYPE, _USE_FILE_LOCKING
@@ -370,7 +370,7 @@ Opens a file session.
 :param file_mode: File mode to use
 
 :return: (bool) True on success
-:since:  v0.1.00
+:since:  v0.1.0
         """
 
         # global: _PY_BYTES_TYPE, _PY_STR, _PY_UNICODE_TYPE
@@ -430,7 +430,7 @@ Opens a file handle and sets the encoding to UTF-8.
 :param is_binary: False if the file is an UTF-8 (or ASCII) encoded one
 
 :return: (object) File
-:since:  v0.1.01
+:since:  v0.1.1
         """
 
         _return = None
@@ -453,7 +453,7 @@ python.org: Read up to n bytes from the object and return them.
 :param timeout: Timeout to use (defaults to construction time value)
 
 :return: (bytes) Data; None if EOF
-:since:  v0.1.00
+:since:  v0.1.0
         """
 
         # global: _PY_BYTES_TYPE
@@ -490,7 +490,7 @@ python.org: Change the stream position to the given byte offset.
 :param offset: Seek to the given offset
 
 :return: (int) Return the new absolute position.
-:since:  v0.1.00
+:since:  v0.1.0
         """
 
         if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.seek({0:d})- (#echo(__LINE__)#)".format(offset))
@@ -503,7 +503,7 @@ Sets the EventHandler.
 
 :param event_handler: EventHandler to use
 
-:since: v0.1.00
+:since: v0.1.0
         """
 
         self.event_handler = event_handler
@@ -514,7 +514,7 @@ Sets the EventHandler.
 python.org: Return the current stream position as an opaque number.
 
 :return: (int) Stream position
-:since:  v0.1.02
+:since:  v0.1.2
         """
 
         return (-1 if (self._handle is None) else self._handle.tell())
@@ -527,7 +527,7 @@ python.org: Resize the stream to the given size in bytes.
 :param new_size: Cut file at the given byte position
 
 :return: (int) New file size
-:since:  v0.1.00
+:since:  v0.1.0
         """
 
         if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.truncate({0:d})- (#echo(__LINE__)#)".format(new_size))
@@ -549,7 +549,7 @@ raw stream and return the number of bytes written.
 :param timeout: Timeout to use (defaults to construction time value)
 
 :return: (int) Number of bytes written
-:since:  v0.1.00
+:since:  v0.1.0
         """
 
         # global: _PY_BYTES, _PY_BYTES_TYPE
