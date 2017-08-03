@@ -20,6 +20,7 @@ https://www.direct-netware.de/redirect?licenses;mpl2
 # pylint: disable=import-error,invalid-name,undefined-variable
 
 from os import path
+from weakref import proxy, ProxyTypes
 import os
 import stat
 import time
@@ -53,14 +54,14 @@ Get file objects to work with files easily.
             Mozilla Public License, v. 2.0
     """
 
-    def __init__(self, default_umask = None, default_chmod = None, timeout_retries = 5, event_handler = None):
+    def __init__(self, default_umask = None, default_chmod = None, timeout_retries = 5, log_handler = None):
         """
 Constructor __init__(File)
 
 :param default_umask: umask to set before creating a new file
 :param default_chmod: chmod to set when creating a new file
 :param timeout_retries: Retries before timing out
-:param event_handler: EventHandler to use
+:param log_handler: Log handler to use
 
 :since: v0.1.0
         """
@@ -73,19 +74,6 @@ Binary file flag
         """
 chmod to set when creating a new file
         """
-        self.event_handler = event_handler
-        """
-The EventHandler is called whenever debug messages should be logged or errors
-    happened.
-        """
-        self.readonly = False
-        """
-True if file is opened read-only
-        """
-        self._handle = None
-        """
-Handle to the opened file
-        """
         self.file_path_name = ""
         """
 File path and name for the file handle
@@ -94,9 +82,22 @@ File path and name for the file handle
         """
 File size of the file handle
         """
+        self._handle = None
+        """
+Handle to the opened file
+        """
         self._handle_lock = "r"
         """
 Current locking mode
+        """
+        self._log_handler = None
+        """
+The log handler is called whenever debug messages should be logged or errors
+happened.
+        """
+        self.readonly = False
+        """
+True if file is opened read-only
         """
         self.timeout_retries = (5 if (timeout_retries is None) else timeout_retries)
         """
@@ -125,6 +126,8 @@ umask to set before creating a new file
             if ((0o002 & default_chmod) == 0o002): self.chmod |= stat.S_IWOTH
             if ((0o004 & default_chmod) == 0o004): self.chmod |= stat.S_IROTH
         #
+
+        if (log_handler is not None): self.log_handler = log_handler
     #
 
     def __del__(self):
@@ -135,6 +138,100 @@ Destructor __del__(File)
         """
 
         self.close()
+    #
+
+    def __enter__(self):
+        """
+python.org: Enter the runtime context related to this object.
+
+:since: v1.0.0
+        """
+
+        if (self._handle is None): raise IOError("Failed to enter context for an uninitialized file instance")
+    #
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """
+python.org: Exit the runtime context related to this object.
+
+:return: (bool) True to suppress exceptions
+:since:  v1.0.0
+        """
+
+        self.close()
+    #
+
+    @property
+    def handle(self):
+        """
+Returns the file handle.
+
+:return: (mixed) File handle; None if not opened
+:since:  v1.0.0
+        """
+
+        return (None if (self._handle is None) else self._handle)
+    #
+
+    @property
+    def is_eof(self):
+        """
+Returns true if the handle is at EOF.
+
+:return: (bool) True if EOF
+:since:  v1.0.0
+        """
+
+        return (True if (self._handle is None or self._handle.tell() == self.file_size) else False)
+    #
+
+    @property
+    def is_valid(self):
+        """
+Returns true if the file handle is available.
+
+:return: (bool) True on success
+:since:  v1.0.0
+        """
+
+        return (self._handle is not None)
+    #
+
+    @property
+    def log_handler(self):
+        """
+Returns the LogHandler.
+
+:return: (object) LogHandler in use
+:since:  v1.0.0
+        """
+
+        return self._log_handler
+    #
+
+    @log_handler.setter
+    def log_handler(self, log_handler):
+        """
+Sets the LogHandler.
+
+:param log_handler: LogHandler to use
+
+:since: v1.0.0
+        """
+
+        self._log_handler = (log_handler if (isinstance(log_handler, ProxyTypes)) else proxy(log_handler))
+    #
+
+    @property
+    def size(self):
+        """
+Returns the size in bytes.
+
+:return: (int) Size in bytes
+:since:  v1.0.0
+        """
+
+        return (-1 if (self._handle is None) else self.file_size)
     #
 
     def close(self, delete_empty = False):
@@ -150,7 +247,7 @@ python.org: Flush and close this stream.
 
         # global: _USE_FILE_LOCKING
 
-        if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.close()- (#echo(__LINE__)#)")
+        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.close()- (#echo(__LINE__)#)")
         _return = False
 
         if (self._handle is not None):
@@ -213,50 +310,6 @@ python.org: Flush the write buffers of the stream if applicable.
         return _return
     #
 
-    def get_handle(self):
-        """
-Returns the file pointer.
-
-:return: (mixed) File handle; False on error
-:since:  v0.1.0
-        """
-
-        return (False if (self._handle is None) else self._handle)
-    #
-
-    def get_size(self):
-        """
-Returns the size in bytes.
-
-:return: (int) Size in bytes
-:since:  v0.1.2
-        """
-
-        return (-1 if (self._handle is None) else self.file_size)
-    #
-
-    def is_eof(self):
-        """
-Checks if the pointer is at EOF.
-
-:return: (bool) True on success
-:since:  v0.1.0
-        """
-
-        return (True if (self._handle is None or self._handle.tell() == self.file_size) else False)
-    #
-
-    def is_valid(self):
-        """
-Returns true if the file handle is available.
-
-:return: (bool) True on success
-:since:  v0.2.0
-        """
-
-        return (self._handle is not None)
-    #
-
     def lock(self, lock_mode):
         """
 Changes file locking if needed.
@@ -267,14 +320,14 @@ Changes file locking if needed.
 :since:  v0.1.0
         """
 
-        if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.lock({0})- (#echo(__LINE__)#)".format(lock_mode))
+        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.lock({0})- (#echo(__LINE__)#)".format(lock_mode))
 
         _return = False
 
         if (self._handle is None):
-            if (self.event_handler is not None): self.event_handler.warning("#echo(__FILEPATH__)# -file.lock()- reporting: File handle invalid")
+            if (self._log_handler is not None): self._log_handler.warning("#echo(__FILEPATH__)# -file.lock()- reporting: File handle invalid")
         elif (lock_mode == "w" and self.readonly):
-            if (self.event_handler is not None): self.event_handler.error("#echo(__FILEPATH__)# -file.lock()- reporting: File handle is in readonly mode")
+            if (self._log_handler is not None): self._log_handler.error("#echo(__FILEPATH__)# -file.lock()- reporting: File handle is in readonly mode")
         elif (lock_mode == self._handle_lock): _return = True
         else:
             timeout_retries = self.timeout_retries
@@ -292,7 +345,7 @@ Changes file locking if needed.
                 #
             #
 
-            if (timeout_retries > -1 and self.event_handler is not None): self.event_handler.error("#echo(__FILEPATH__)# -file.lock()- reporting: File lock change failed")
+            if (timeout_retries > -1 and self._log_handler is not None): self._log_handler.error("#echo(__FILEPATH__)# -file.lock()- reporting: File lock change failed")
         #
 
         return _return
@@ -377,7 +430,7 @@ Opens a file session.
 
         if (str is not _PY_UNICODE_TYPE and type(file_path_name) is _PY_UNICODE_TYPE): file_path_name = _PY_STR(file_path_name, "utf-8")
 
-        if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.open({0}, {1})- (#echo(__LINE__)#)".format(file_path_name, file_mode))
+        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.open({0}, {1})- (#echo(__LINE__)#)".format(file_path_name, file_mode))
 
         if (self._handle is None):
             exists = False
@@ -396,7 +449,7 @@ Opens a file session.
             if (_return):
                 try: self._handle = self._open(file_path_name, file_mode, is_binary)
                 except IOError: _return = False
-            elif (self.event_handler is not None): self.event_handler.warning("#echo(__FILEPATH__)# -file.open()- reporting: Failed opening {0} - file does not exist".format(file_path_name))
+            elif (self._log_handler is not None): self._log_handler.warning("#echo(__FILEPATH__)# -file.open()- reporting: Failed opening {0} - file does not exist".format(file_path_name))
 
             if (self._handle is None):
                 if ((not exists) and (not self.readonly)):
@@ -458,7 +511,7 @@ python.org: Read up to n bytes from the object and return them.
 
         # global: _PY_BYTES_TYPE
 
-        if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.read({0:d}, {1:d})- (#echo(__LINE__)#)".format(n, timeout))
+        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.read({0:d}, {1:d})- (#echo(__LINE__)#)".format(n, timeout))
 
         _return = None
 
@@ -469,15 +522,15 @@ python.org: Read up to n bytes from the object and return them.
             _return = (_PY_BYTES_TYPE() if (self.binary) else "")
             timeout_time += (self.timeout_retries if (timeout < 0) else timeout)
 
-            while ((bytes_unread > 0 or n == 0) and (not self.is_eof()) and time.time() < timeout_time):
+            while ((bytes_unread > 0 or n == 0) and (not self.is_eof) and time.time() < timeout_time):
                 part_size = (16384 if (bytes_unread > 16384 or n == 0) else bytes_unread)
                 _return += self._handle.read(part_size)
                 if (n > 0): bytes_unread -= part_size
             #
 
-            if ((bytes_unread > 0 or (n == 0 and self.is_eof()))
-                and self.event_handler is not None
-               ): self.event_handler.error("#echo(__FILEPATH__)# -file.read()- reporting: Timeout occured before EOF")
+            if ((bytes_unread > 0 or (n == 0 and self.is_eof))
+                and self._log_handler is not None
+               ): self._log_handler.error("#echo(__FILEPATH__)# -file.read()- reporting: Timeout occured before EOF")
         #
 
         return _return
@@ -493,20 +546,8 @@ python.org: Change the stream position to the given byte offset.
 :since:  v0.1.0
         """
 
-        if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.seek({0:d})- (#echo(__LINE__)#)".format(offset))
+        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.seek({0:d})- (#echo(__LINE__)#)".format(offset))
         return (-1 if (self._handle is None) else self._handle.seek(offset))
-    #
-
-    def set_event_handler(self, event_handler = None):
-        """
-Sets the EventHandler.
-
-:param event_handler: EventHandler to use
-
-:since: v0.1.0
-        """
-
-        self.event_handler = event_handler
     #
 
     def tell(self):
@@ -530,7 +571,7 @@ python.org: Resize the stream to the given size in bytes.
 :since:  v0.1.0
         """
 
-        if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.truncate({0:d})- (#echo(__LINE__)#)".format(new_size))
+        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.truncate({0:d})- (#echo(__LINE__)#)".format(new_size))
 
         if (self.lock("w")):
             _return = self._handle.truncate(new_size)
@@ -554,7 +595,7 @@ raw stream and return the number of bytes written.
 
         # global: _PY_BYTES, _PY_BYTES_TYPE
 
-        if (self.event_handler is not None): self.event_handler.debug("#echo(__FILEPATH__)# -file.write({0:d})- (#echo(__LINE__)#)".format(timeout))
+        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.write({0:d})- (#echo(__LINE__)#)".format(timeout))
 
         _return = 0
 
@@ -579,7 +620,7 @@ raw stream and return the number of bytes written.
 
             if (bytes_unwritten > 0):
                 self.file_size = os.stat(path.normpath(self.file_path_name)).st_size
-                if (self.event_handler is not None): self.event_handler.error("#echo(__FILEPATH__)# -file.write()- reporting: Timeout occured before EOF")
+                if (self._log_handler is not None): self._log_handler.error("#echo(__FILEPATH__)# -file.write()- reporting: Timeout occured before EOF")
             elif (new_size > 0): self.file_size = new_size
         #
 
