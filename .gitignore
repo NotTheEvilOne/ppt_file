@@ -4,6 +4,8 @@ __py*
 nbproject
 /_extras
 /build
+/dist
 /file.py.*
 /makefile.*
+/MANIFEST
 /py_file.*
