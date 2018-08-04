@@ -42,7 +42,9 @@ except NameError:
     _PY_UNICODE_TYPE = str
 #
 
-class File(object):
+_PathLike = (os.PathLike if (hasattr(os, "PathLike")) else object)
+
+class File(_PathLike):
     """
 Get file objects to work with files easily.
 
@@ -159,6 +161,18 @@ python.org: Exit the runtime context related to this object.
         """
 
         self.close()
+    #
+
+    def __fspath__(self):
+        """
+python.org: Return the file system path representation of the object.
+
+:return: (str) File system path representation
+:since:  v1.0.0
+        """
+
+        if (self._handle is None): raise IOError("File handle invalid")
+        return self.file_path_name
     #
 
     @property
