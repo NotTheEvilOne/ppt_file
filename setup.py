@@ -55,7 +55,7 @@ with TemporaryDirectory(dir = ".") as build_directory:
     makedirs(path.join(build_directory, "src", "dNG"))
 
     _setup = { "name": "dng-file",
-               "version": get_version(),
+               "version": get_version()[1:],
                "description": "Working with a file abstraction layer",
                "long_description": "The file.py abstraction layer provides an interface similar to FileIO with support for read, lock and write timeouts.",
                "author": "direct Netware Group et al.",
