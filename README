@@ -1,10 +1,10 @@
 ----------------------------------------------------------------------------
-file.py
-Working with a file abstraction layer
+direct Python Toolbox
+All-in-one toolbox to encapsulate Python runtime variants
 ----------------------------------------------------------------------------
 
-The file.py abstraction layer provides an interface similar to FileIO with
-support for read, lock and write timeouts.
+The "dpt-file" abstraction layer provides an interface similar to FileIO
+with support for read, lock and write timeouts.
 
 ----------------------------------------------------------------------------
 Licensing

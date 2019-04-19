@@ -1,12 +1,12 @@
 __py*
 .*
+*.egg-info
 *.pyc
 nbproject
 /_extras
 /build
 /dist
-/dng_file*
-/file.py.*
+/dpt_file*
+/dpt-file*
 /makefile.*
 /MANIFEST
-/py_file.*

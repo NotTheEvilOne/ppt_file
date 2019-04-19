@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 """
-file.py
-Working with a file abstraction layer
+direct Python Toolbox
+All-in-one toolbox to encapsulate Python runtime variants
 ----------------------------------------------------------------------------
 (C) direct Netware Group - All rights reserved
-https://www.direct-netware.de/redirect?py;file
+https://www.direct-netware.de/redirect?dpt;file
 
 This Source Code Form is subject to the terms of the Mozilla Public License,
 v. 2.0. If a copy of the MPL was not distributed with this file, You can
@@ -13,7 +13,7 @@ obtain one at http://mozilla.org/MPL/2.0/.
 ----------------------------------------------------------------------------
 https://www.direct-netware.de/redirect?licenses;mpl2
 ----------------------------------------------------------------------------
-#echo(pyFileVersion)#
+#echo(dptFileVersion)#
 #echo(__FILEPATH__)#
 """
 
@@ -48,12 +48,13 @@ class File(_PathLike):
     """
 Get file objects to work with files easily.
 
-:author:    direct Netware Group et al.
-:copyright: direct Netware Group - All rights reserved
-:package:   file.py
-:since:     v0.1.0
-:license:   https://www.direct-netware.de/redirect?licenses;mpl2
-            Mozilla Public License, v. 2.0
+:author:     direct Netware Group et al.
+:copyright:  direct Netware Group - All rights reserved
+:package:    dpt
+:subpackage: file
+:since:      v1.0.0
+:license:    https://www.direct-netware.de/redirect?licenses;mpl2
+             Mozilla Public License, v. 2.0
     """
 
     def __init__(self, default_umask = None, default_chmod = None, timeout_retries = 5, log_handler = None):
@@ -65,7 +66,7 @@ Constructor __init__(File)
 :param timeout_retries: Retries before timing out
 :param log_handler: Log handler to use
 
-:since: v0.1.0
+:since: v1.0.0
         """
 
         self.binary = False
@@ -136,7 +137,7 @@ umask to set before creating a new file
         """
 Destructor __del__(File)
 
-:since: v0.1.0
+:since: v1.0.0
         """
 
         self.close()
@@ -214,9 +215,9 @@ Returns true if the file handle is available.
     @property
     def log_handler(self):
         """
-Returns the LogHandler.
+Returns the log handler.
 
-:return: (object) LogHandler in use
+:return: (object) Log handler in use
 :since:  v1.0.0
         """
 
@@ -226,9 +227,9 @@ Returns the LogHandler.
     @log_handler.setter
     def log_handler(self, log_handler):
         """
-Sets the LogHandler.
+Sets the log handler.
 
-:param log_handler: LogHandler to use
+:param log_handler: Log handler to use
 
 :since: v1.0.0
         """
@@ -256,7 +257,7 @@ python.org: Flush and close this stream.
                      this parameter is true then the file will be deleted.
 
 :return: (bool) True on success
-:since:  v0.1.0
+:since:  v1.0.0
         """
 
         # global: _USE_FILE_LOCKING
@@ -307,7 +308,7 @@ python.org: Flush and close this stream.
 python.org: Flush the write buffers of the stream if applicable.
 
 :return: (bool) True on success
-:since:  v0.1.0
+:since:  v1.0.0
         """
 
         _return = False
@@ -331,7 +332,7 @@ Changes file locking if needed.
 :param lock_mode: The requested file locking mode ("r" or "w").
 
 :return: (bool) True on success
-:since:  v0.1.0
+:since:  v1.0.0
         """
 
         if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.lock({0})- (#echo(__LINE__)#)".format(lock_mode))
@@ -374,7 +375,7 @@ Runs flock or an alternative locking mechanism.
                       _USE_FILE_LOCKING)
 
 :return: (bool) True on success
-:since:  v0.1.0
+:since:  v1.0.0
         """
 
         # global: _PY_STR, _PY_UNICODE_TYPE, _USE_FILE_LOCKING
@@ -437,7 +438,7 @@ Opens a file session.
 :param file_mode: File mode to use
 
 :return: (bool) True on success
-:since:  v0.1.0
+:since:  v1.0.0
         """
 
         # global: _PY_BYTES_TYPE, _PY_STR, _PY_UNICODE_TYPE
@@ -497,7 +498,7 @@ Opens a file handle and sets the encoding to UTF-8.
 :param is_binary: False if the file is an UTF-8 (or ASCII) encoded one
 
 :return: (object) File
-:since:  v0.1.1
+:since:  v1.0.0
         """
 
         _return = None
@@ -520,7 +521,7 @@ python.org: Read up to n bytes from the object and return them.
 :param timeout: Timeout to use (defaults to construction time value)
 
 :return: (bytes) Data; None if EOF
-:since:  v0.1.0
+:since:  v1.0.0
         """
 
         # global: _PY_BYTES_TYPE
@@ -557,7 +558,7 @@ python.org: Change the stream position to the given byte offset.
 :param offset: Seek to the given offset
 
 :return: (int) Return the new absolute position.
-:since:  v0.1.0
+:since:  v1.0.0
         """
 
         if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.seek({0:d})- (#echo(__LINE__)#)".format(offset))
@@ -569,7 +570,7 @@ python.org: Change the stream position to the given byte offset.
 python.org: Return the current stream position as an opaque number.
 
 :return: (int) Stream position
-:since:  v0.1.2
+:since:  v1.0.0
         """
 
         return (-1 if (self._handle is None) else self._handle.tell())
@@ -582,7 +583,7 @@ python.org: Resize the stream to the given size in bytes.
 :param new_size: Cut file at the given byte position
 
 :return: (int) New file size
-:since:  v0.1.0
+:since:  v1.0.0
         """
 
         if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.truncate({0:d})- (#echo(__LINE__)#)".format(new_size))
@@ -604,7 +605,7 @@ raw stream and return the number of bytes written.
 :param timeout: Timeout to use (defaults to construction time value)
 
 :return: (int) Number of bytes written
-:since:  v0.1.0
+:since:  v1.0.0
         """
 
         # global: _PY_BYTES, _PY_BYTES_TYPE

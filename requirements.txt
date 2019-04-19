@@ -1,1 +1,1 @@
--e git+http://git.direct-netware.de/py/builder_suite/#egg=dng-builder-suite[gitsrc]
+git+https://git.direct-netware.de/dpt/builder_suite/@v1.0.0#egg=dpt-builder-suite[gitsrc]
