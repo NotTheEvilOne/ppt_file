@@ -65,8 +65,10 @@ else:
         Sdist.set_build_target_path(build_directory)
         Sdist.set_build_target_parameters(parameters)
 
-        makedirs(path.join(build_directory, "src"))
+        package_dir = path.join(build_directory, "src")
+        makedirs(package_dir)
 
+        _setup['package_dir'] = { "": package_dir }
         _setup['packages'] = [ "dpt_file" ]
 
         # Customize "cmdclass" to first run builder.py
