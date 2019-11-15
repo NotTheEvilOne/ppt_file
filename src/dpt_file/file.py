@@ -352,7 +352,7 @@ Changes file locking if needed.
 :since:  v1.0.0
         """
 
-        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.lock({0})- (#echo(__LINE__)#)".format(lock_mode))
+        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.lock({0})- (#echo(__LINE__)#)", lock_mode)
 
         _return = False
 
@@ -462,7 +462,7 @@ Opens a file session.
 
         if (str is not _PY_UNICODE_TYPE and type(file_path_name) is _PY_UNICODE_TYPE): file_path_name = _PY_STR(file_path_name, "utf-8")
 
-        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.open({0}, {1})- (#echo(__LINE__)#)".format(file_path_name, file_mode))
+        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.open({0}, {1})- (#echo(__LINE__)#)", file_path_name, file_mode)
 
         if (self._handle is None):
             exists = False
@@ -481,7 +481,7 @@ Opens a file session.
             if (_return):
                 try: self._handle = self._open(file_path_name, file_mode, is_binary)
                 except IOError: _return = False
-            elif (self._log_handler is not None): self._log_handler.warning("#echo(__FILEPATH__)# -file.open()- reporting: Failed opening {0} - file does not exist".format(file_path_name))
+            elif (self._log_handler is not None): self._log_handler.warning("#echo(__FILEPATH__)# -file.open()- reporting: Failed opening {0} - file does not exist", file_path_name)
 
             if (self._handle is None):
                 if ((not exists) and (not self.readonly)):
@@ -543,7 +543,7 @@ python.org: Read up to n bytes from the object and return them.
 
         # global: _PY_BYTES_TYPE
 
-        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.read({0:d}, {1:d})- (#echo(__LINE__)#)".format(n, timeout))
+        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.read({0:d}, {1:d})- (#echo(__LINE__)#)", n, timeout)
 
         _return = None
 
@@ -578,7 +578,7 @@ python.org: Change the stream position to the given byte offset.
 :since:  v1.0.0
         """
 
-        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.seek({0:d})- (#echo(__LINE__)#)".format(offset))
+        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.seek({0:d})- (#echo(__LINE__)#)", offset)
         return (-1 if (self._handle is None) else self._handle.seek(offset))
     #
 
@@ -603,7 +603,7 @@ python.org: Resize the stream to the given size in bytes.
 :since:  v1.0.0
         """
 
-        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.truncate({0:d})- (#echo(__LINE__)#)".format(new_size))
+        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.truncate({0:d})- (#echo(__LINE__)#)", new_size)
 
         if (self.lock("w")):
             _return = self._handle.truncate(new_size)
@@ -627,7 +627,7 @@ raw stream and return the number of bytes written.
 
         # global: _PY_BYTES, _PY_BYTES_TYPE
 
-        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.write({0:d})- (#echo(__LINE__)#)".format(timeout))
+        if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.write({0:d})- (#echo(__LINE__)#)", timeout)
 
         _return = 0
 
