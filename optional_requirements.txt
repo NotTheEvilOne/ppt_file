@@ -1,0 +1,1 @@
+git+git://git.direct-netware.de/dpt/builder_suite/@v1.0.1#egg=dpt-builder-suite
