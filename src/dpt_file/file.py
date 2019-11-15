@@ -17,7 +17,7 @@ https://www.direct-netware.de/redirect?licenses;mpl2
 #echo(__FILEPATH__)#
 """
 
-# pylint: disable=import-error,invalid-name,undefined-variable
+# pylint: disable=import-error,invalid-name,no-member,undefined-variable
 
 from os import path
 from weakref import proxy, ProxyTypes
@@ -57,6 +57,7 @@ Get file objects to work with files easily.
              Mozilla Public License, v. 2.0
     """
 
+    # pylint: disable=bad-option-value,slots-on-old-class
     __slots__ = [ "binary",
                   "chmod",
                   "file_path_name",
