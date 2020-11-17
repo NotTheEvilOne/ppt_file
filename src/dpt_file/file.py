@@ -128,7 +128,7 @@ Retries before timing out
 umask to set before creating a new file
         """
 
-        if (default_chmod is None): self.chmod = default_chmod
+        if (default_chmod is None or type(default_chmod) is int): self.chmod = default_chmod
         else:
             default_chmod = int(default_chmod, 8)
             self.chmod = 0
@@ -549,12 +549,13 @@ python.org: Read up to n bytes from the object and return them.
 
         if (self.lock("r")):
             bytes_unread = n
-            timeout_time = time.time()
-
             _return = (_PY_BYTES_TYPE() if (self.binary) else "")
-            timeout_time += (self.timeout_retries if (timeout < 0) else timeout)
+            timeout_time = (None if (timeout < 0) else (time.time() + timeout))
 
-            while ((bytes_unread > 0 or n == 0) and (not self.is_eof) and time.time() < timeout_time):
+            while ((bytes_unread > 0 or n == 0)
+                   and (not self.is_eof)
+                   and (timeout_time is None or time.time() < timeout_time)
+                  ):
                 part_size = (16384 if (bytes_unread > 16384 or n == 0) else bytes_unread)
                 _return += self._handle.read(part_size)
                 if (n > 0): bytes_unread -= part_size
@@ -593,7 +594,7 @@ python.org: Return the current stream position as an opaque number.
         return (-1 if (self._handle is None) else self._handle.tell())
     #
 
-    def truncate(self, new_size):
+    def truncate(self, new_size = None):
         """
 python.org: Resize the stream to the given size in bytes.
 
@@ -603,6 +604,7 @@ python.org: Resize the stream to the given size in bytes.
 :since:  v1.0.0
         """
 
+        if (new_size is None): new_size = max(0, self.tell())
         if (self._log_handler is not None): self._log_handler.debug("#echo(__FILEPATH__)# -file.truncate({0:d})- (#echo(__LINE__)#)", new_size)
 
         if (self.lock("w")):
