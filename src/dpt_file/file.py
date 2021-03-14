@@ -58,7 +58,7 @@ Get file objects to work with files easily.
     """
 
     # pylint: disable=bad-option-value,slots-on-old-class
-    __slots__ = [ "binary",
+    __slots__ = ( "binary",
                   "chmod",
                   "file_path_name",
                   "file_size",
@@ -68,7 +68,7 @@ Get file objects to work with files easily.
                   "readonly",
                   "timeout_retries",
                   "umask"
-                ]
+                )
     """
 python.org: __slots__ reserves space for the declared variables and prevents
 the automatic creation of __dict__ and __weakref__ for each instance.
