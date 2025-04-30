@@ -6,7 +6,6 @@ nbproject
 /_extras
 /build
 /dist
-/dpt_file*
-/dpt-file*
-/makefile.*
+/ppt_file*
 /MANIFEST
+/Pipfile*
