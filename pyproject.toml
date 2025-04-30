@@ -1,3 +1,26 @@
 [build-system]
 requires = [ "setuptools", "wheel" ]
 build-backend = "setuptools.build_meta"
+
+[project]
+dynamic = ["dependencies", "optional-dependencies", "scripts", "version"]
+requires-python = ">=3.9"
+
+name = "ppt_file"
+description = "Working with a file abstraction layer"
+readme = {file = "README", content-type = "text/plain"}
+authors = [{name = "NotTheEvilOne", email = "no-reply@vplace.de"}]
+license = "MPL-2.0"
+license-files = ["LICENSE"]
+classifiers = [
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+[project.urls]
+Homepage = "https://github.com/NotTheEvilOne/ppt_file"
+
+[tool.pytest.ini_options]
+pythonpath = [ "src" ]

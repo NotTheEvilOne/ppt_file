@@ -7,20 +7,26 @@ on:
 jobs:
   pypi-publish:
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/ppt_file
+    env:
+      PPT_VERSION: ''
+    permissions:
+      id-token: write
 
     steps:
     - name: Checkout commit
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
+    - name: Set env PPT_VERSION
+      run: echo "PPT_VERSION=${GITHUB_REF/refs\/tags\/v/}" >> "$GITHUB_ENV"
     - name: Set up Python
-      uses: actions/setup-python@v2
-    - name: Install dependencies
+      uses: actions/setup-python@v5
+    - name: Install build dependency
       run: |-
-        pip install -r ./build_requirements.txt
+        pip install build
     - name: Execute build
       run: |-
-        python setup.py sdist bdist_wheel
+        python -m build --sdist --wheel
     - name: Publish package
-      uses: pypa/gh-action-pypi-publish@v1.4.1
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_PROD_PASSWORD }}
+      uses: pypa/gh-action-pypi-publish@release/v1

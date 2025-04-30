@@ -1,9 +1,9 @@
 ----------------------------------------------------------------------------
-direct Python Toolbox
-All-in-one toolbox to encapsulate Python runtime variants
+Personal Python Toolkit
+Modularized all-in-one toolkit for Python
 ----------------------------------------------------------------------------
 
-The "dpt-file" abstraction layer provides an interface similar to FileIO
+The "ppt_file" abstraction layer provides an interface similar to FileIO
 with support for read, lock and write timeouts.
 
 ----------------------------------------------------------------------------
@@ -17,18 +17,7 @@ the "LICENSE" file.
 Contributing
 ----------------------------------------------------------------------------
 
-Thank you for your interest in projects of the direct Netware Group (dNG).
-As a supporter of the development project listed above we would kindly ask
-you to agree to and send a written copy of our "Fiduciary Licence
-Agreement".
-
-A copy is available under "_developer/FLA.pdf".
-
-Alternatively we request all push requests to contain a "FLA-agreed-by"
-tag. This indicates that the push is licensed under the terms of the
-"Fiduciary Licence Agreement" and can be integrated.
-
-Pushes not licensed as public domain or under the "Fiduciary Licence
-Agreement" can't be accepted.
+Thank you for your interest. Contributions are always welcomed. See
+"LICENSE" for open source license details.
 
 ----------------------------------------------------------------------------
