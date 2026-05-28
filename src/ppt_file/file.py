@@ -371,13 +371,11 @@ umask to set before creating a new file
 
         if self._handle is None:
             if self._log_handler is not None:
-                self._log_handler.warning(
-                    "ppt_file.File.lock()- reporting: File handle invalid"
-                )
+                self._log_handler.warning("ppt_file.File.lock(): File handle invalid")
         elif lock_mode == "w" and self.readonly:
             if self._log_handler is not None:
                 self._log_handler.error(
-                    "ppt_file.File.lock()- reporting: File handle is in readonly mode"
+                    "ppt_file.File.lock(): File handle is in readonly mode"
                 )
         elif lock_mode == self._handle_lock:
             _return = True
@@ -396,9 +394,7 @@ umask to set before creating a new file
                     time.sleep(1)
 
             if timeout_retries > -1 and self._log_handler is not None:
-                self._log_handler.error(
-                    "ppt_file.File.lock()- reporting: File lock change failed"
-                )
+                self._log_handler.error("ppt_file.File.lock(): File lock change failed")
 
         return _return
 
@@ -519,7 +515,7 @@ umask to set before creating a new file
                     _return = False
             elif self._log_handler is not None:
                 self._log_handler.warning(
-                    f"ppt_file.File.open()- reporting: Failed opening {file_path_name} - file does not exist"
+                    f"ppt_file.File.open(): Failed opening {file_path_name} - file does not exist"
                 )
 
             if self._handle is None:
@@ -607,7 +603,7 @@ umask to set before creating a new file
                 bytes_unread > 0 or (n == 0 and self.is_eof)
             ) and self._log_handler is not None:
                 self._log_handler.error(
-                    "ppt_file.File.read()- reporting: Timeout occured before EOF"
+                    "ppt_file.File.read(): Timeout occured before EOF"
                 )
 
         return _return
@@ -706,7 +702,7 @@ umask to set before creating a new file
 
                 if self._log_handler is not None:
                     self._log_handler.error(
-                        "ppt_file.File.write()- reporting: Timeout occured before EOF"
+                        "ppt_file.File.write(): Timeout occured before EOF"
                     )
             elif new_size > 0:
                 self.file_size = new_size
