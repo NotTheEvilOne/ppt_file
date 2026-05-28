@@ -2,7 +2,8 @@ name: py:publish
 
 on:
   release:
-    types: [ released ]
+    types:
+    - released
 
 jobs:
   pypi-publish:
@@ -17,11 +18,11 @@ jobs:
 
     steps:
     - name: Checkout commit
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Set env PPT_VERSION
       run: echo "PPT_VERSION=${GITHUB_REF/refs\/tags\/v/}" >> "$GITHUB_ENV"
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
     - name: Install build dependency
       run: |-
         pip install build
