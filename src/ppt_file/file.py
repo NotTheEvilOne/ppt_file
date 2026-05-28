@@ -14,7 +14,8 @@ obtain one at http://mozilla.org/MPL/2.0/.
 
 # pylint: disable=import-error,invalid-name,no-member,undefined-variable
 
-from os import path
+from os.path import normpath
+from pathlib import Path
 from weakref import proxy, ProxyTypes
 import os
 import stat
@@ -47,7 +48,7 @@ class File(_PathLike):
     __slots__ = (
         "binary",
         "chmod",
-        "file_path_name",
+        "file_path",
         "file_size",
         "_handle",
         "_handle_lock",
@@ -63,6 +64,9 @@ the automatic creation of __dict__ and __weakref__ for each instance.
 
     def __init__(
         self,
+        file_path_name=None,
+        readonly=False,
+        file_mode="r+b",
         default_umask=None,
         default_chmod=None,
         timeout_retries=5,
@@ -71,6 +75,9 @@ the automatic creation of __dict__ and __weakref__ for each instance.
         """
         Constructor __init__(File)
 
+        :param file_path_name: File path and name to be automatically opened
+        :param readonly: Open file in readonly mode
+        :param file_mode: File mode to use
         :param default_umask: umask to set before creating a new file
         :param default_chmod: chmod to set when creating a new file
         :param timeout_retries: Retries before timing out
@@ -87,7 +94,7 @@ Binary file flag
         """
 chmod to set when creating a new file
         """
-        self.file_path_name = ""
+        self.file_path = None
         """
 File path and name for the file handle
         """
@@ -123,7 +130,7 @@ umask to set before creating a new file
 
         if isinstance(default_chmod, int):
             self.chmod = default_chmod
-        else:
+        elif default_chmod is not None:
             default_chmod = int(default_chmod, 8)
             self.chmod = 0
 
@@ -154,6 +161,9 @@ umask to set before creating a new file
 
         if log_handler is not None:
             self.log_handler = log_handler
+
+        if file_path_name is not None:
+            self.open(file_path_name, readonly, file_mode)
 
     def __del__(self):
         """
@@ -197,7 +207,7 @@ umask to set before creating a new file
         if self._handle is None:
             raise IOError("File handle invalid")
 
-        return self.file_path_name
+        return str(self.file_path)
 
     @property
     def handle(self):
@@ -301,28 +311,25 @@ umask to set before creating a new file
             _return = True
 
             if self._handle_lock == "w" and _USE_FILE_LOCKING:
-                lock_path_name_os = path.normpath(
-                    "{0}.lock".format(self.file_path_name)
-                )
+                lock_file_path = Path(f"{self.file_path}.lock")
 
-                if path.exists(lock_path_name_os):
+                if lock_file_path.exists():
                     try:
-                        os.unlink(lock_path_name_os)
+                        lock_file_path.unlink()
                     except IOError:
                         pass
 
             if not self.readonly and delete_empty and file_position < 1:
-                file_path_name_os = path.normpath(self.file_path_name)
                 _return = True
 
                 try:
-                    os.unlink(file_path_name_os)
+                    self.file_path.unlink()
                 except IOError:
                     _return = False
 
             self._handle = None
 
-            self.file_path_name = ""
+            self.file_path = None
             self.file_size = -1
             self.readonly = False
 
@@ -358,7 +365,7 @@ umask to set before creating a new file
         """
 
         if self._log_handler is not None:
-            self._log_handler.debug("ppt_file.File.lock({0})", lock_mode)
+            self._log_handler.debug(f"ppt_file.File.lock({lock_mode})")
 
         _return = False
 
@@ -412,24 +419,28 @@ umask to set before creating a new file
 
         _return = False
 
+        file_path_name = normpath(file_path_name)
+
         if len(file_path_name) < 1:
-            file_path_name = self.file_path_name
-        lock_path_name_os = path.normpath("{0}.lock".format(file_path_name))
+            file_path_name = str(self.file_path)
+
+        lock_file_path = f"{file_path_name}.lock"
 
         if len(file_path_name) > 0 and self._handle is not None:
             if lock_mode == "w" and self.readonly:
                 _return = False
             elif _USE_FILE_LOCKING:
-                is_locked = path.exists(lock_path_name_os)
+                is_locked = lock_file_path.exists(lock_file_path)
 
                 if is_locked:
                     is_locked = False
 
-                    if time.time() - self.timeout_retries < path.getmtime(
-                        lock_path_name_os
+                    if (
+                        time.time() - self.timeout_retries
+                        < lock_file_path.stat().st_mtime
                     ):
                         try:
-                            os.unlink(lock_path_name_os)
+                            lock_file_path.unlink()
                         except IOError:
                             pass
                     else:
@@ -440,13 +451,13 @@ umask to set before creating a new file
                         _return = True
                     elif not is_locked:
                         try:
-                            open(lock_path_name_os, "w").close()
+                            lock_file_path.open("w").close()
                             _return = True
                         except IOError:
                             pass
                 elif is_locked and self._handle_lock == "w":
                     try:
-                        os.unlink(lock_path_name_os)
+                        lock_file_path.unlink()
                         _return = True
                     except IOError:
                         pass
@@ -465,7 +476,7 @@ umask to set before creating a new file
 
     def open(self, file_path_name, readonly=False, file_mode="r+b"):
         """
-        Opens a file session.
+        Opens a file handle.
 
         :param file_path_name: Path to the requested file
         :param readonly: Open file in readonly mode
@@ -477,17 +488,21 @@ umask to set before creating a new file
 
         if self._log_handler is not None:
             self._log_handler.debug(
-                "ppt_file.File.open({0}, {1})", file_path_name, file_mode
+                f"ppt_file.File.open({file_path_name}, {file_mode})"
             )
+
+        _return = False
 
         if self._handle is None:
             exists = False
-            file_path_name_os = path.normpath(file_path_name)
+            file_path_name = normpath(file_path_name)
             _return = True
+
+            file_path = Path(file_path_name)
 
             self.readonly = True if (readonly) else False
 
-            if path.exists(file_path_name_os):
+            if file_path.exists():
                 exists = True
             elif not self.readonly:
                 if self.umask is not None:
@@ -499,48 +514,46 @@ umask to set before creating a new file
 
             if _return:
                 try:
-                    self._handle = self._open(file_path_name, file_mode, is_binary)
+                    self._handle = self._open(file_path, file_mode, is_binary)
                 except IOError:
                     _return = False
             elif self._log_handler is not None:
                 self._log_handler.warning(
-                    "ppt_file.File.open()- reporting: Failed opening {0} - file does not exist",
-                    file_path_name,
+                    f"ppt_file.File.open()- reporting: Failed opening {file_path_name} - file does not exist"
                 )
 
             if self._handle is None:
                 if not exists and not self.readonly:
                     try:
-                        os.unlink(file_path_name_os)
+                        file_path.unlink()
                     except IOError:
                         pass
             else:
                 self.binary = is_binary
 
                 if self.chmod is not None and not exists:
-                    os.chmod(file_path_name_os, self.chmod)
-                self.file_path_name = file_path_name
+                    file_path.chmod(self.chmod)
+
+                self.file_path = file_path
 
                 if self.lock("r"):
-                    self.file_size = os.stat(file_path_name_os).st_size
+                    self.file_size = file_path.stat().st_size
                 else:
                     _return = False
                     self.close(not exists)
                     self._handle = None
-        else:
-            _return = False
 
         return _return
 
-    def _open(self, file_path_name_os, file_mode, is_binary):
+    def _open(self, file_path, file_mode, is_binary):
         """
         Opens a file handle and sets the encoding to UTF-8.
 
-        :param file_path_name_os: Path to the requested file
+        :param file_path: Path to the requested file
         :param file_mode: File mode to use
         :param is_binary: False if the file is an UTF-8 (or ASCII) encoded one
 
-        :return: (object) File
+        :return: (object) File handle
         :since:  v1.0.0
         """
 
@@ -548,12 +561,12 @@ umask to set before creating a new file
 
         if not is_binary:
             try:
-                _return = open(file_path_name_os, file_mode, encoding="utf-8")
+                _return = file_path.open(file_mode, encoding="utf-8")
             except TypeError:
                 pass
 
         if _return is None:
-            _return = open(file_path_name_os, file_mode)
+            _return = file_path.open(file_mode)
 
         return _return
 
@@ -570,7 +583,7 @@ umask to set before creating a new file
         """
 
         if self._log_handler is not None:
-            self._log_handler.debug("ppt_file.File.read({0:d}, {1:d})", n, timeout)
+            self._log_handler.debug(f"ppt_file.File.read({n:d}, {timeout:d})")
 
         _return = None
 
@@ -610,7 +623,7 @@ umask to set before creating a new file
         """
 
         if self._log_handler is not None:
-            self._log_handler.debug("ppt_file.File.seek({0:d})", offset)
+            self._log_handler.debug(f"ppt_file.File.seek({offset:d})")
 
         return -1 if (self._handle is None) else self._handle.seek(offset)
 
@@ -637,7 +650,9 @@ umask to set before creating a new file
         if new_size is None:
             new_size = max(0, self.tell())
         if self._log_handler is not None:
-            self._log_handler.debug("ppt_file.File.truncate({0:d})", new_size)
+            self._log_handler.debug(
+                f"ppt_file.File.truncate({new_size:d})",
+            )
 
         if self.lock("w"):
             _return = self._handle.truncate(new_size)
@@ -660,7 +675,7 @@ umask to set before creating a new file
         """
 
         if self._log_handler is not None:
-            self._log_handler.debug("ppt_file.File.write({0:d})", timeout)
+            self._log_handler.debug(f"ppt_file.File.write({timeout:d})")
 
         _return = 0
 
@@ -687,7 +702,8 @@ umask to set before creating a new file
                 _return += part_size
 
             if bytes_unwritten > 0:
-                self.file_size = os.stat(path.normpath(self.file_path_name)).st_size
+                self.file_size = self.file_path.stat().st_size
+
                 if self._log_handler is not None:
                     self._log_handler.error(
                         "ppt_file.File.write()- reporting: Timeout occured before EOF"
